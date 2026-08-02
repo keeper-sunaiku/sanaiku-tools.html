@@ -1,0 +1,2547 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>サンアイク 業務ツール</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --ink:#1c1f26;
+    --paper:#fbfaf7;
+    --line:#d8d3c8;
+    --navy:#16324f;
+    --navy-soft:#e8eef3;
+    --accent:#c8462b;
+    --accent-soft:#f7e6e1;
+    --muted:#6b6b63;
+    --field:#ffffff;
+    --ok:#2e7d4f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Hiragino Sans","Yu Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    padding-bottom:80px;
+  }
+  header{
+    background:var(--navy);
+    color:#fff;
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:20;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  }
+  header .brand{
+    display:flex;
+    flex-direction:column;
+    line-height:1.2;
+  }
+  header .brand .logo{
+    font-weight:800;
+    font-size:20px;
+    letter-spacing:0.5px;
+  }
+  header .brand .sub{
+    font-size:11px;
+    color:#b9c6d3;
+    letter-spacing:1px;
+  }
+  header .title{
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:2px;
+  }
+  header button{
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    padding:9px 14px;
+    border-radius:6px;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:1px;
+  }
+  main{
+    max-width:900px;
+    margin:0 auto;
+    padding:16px;
+  }
+  .card{
+    background:var(--field);
+    border:1px solid var(--line);
+    border-radius:10px;
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  .card-head{
+    background:var(--navy-soft);
+    color:var(--navy);
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:2px;
+    padding:9px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .row{
+    display:grid;
+    grid-template-columns:120px 1fr;
+    border-bottom:1px solid var(--line);
+  }
+  .row:last-child{border-bottom:none;}
+  .row.split{grid-template-columns:120px 1fr 90px 1fr;}
+  .label{
+    background:#f4f2ec;
+    padding:12px 12px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    border-right:1px solid var(--line);
+  }
+  .val{padding:8px 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  input[type=text], input[type=tel], input[type=date], select{
+    width:100%;
+    border:none;
+    background:transparent;
+    font-size:15px;
+    padding:8px 4px;
+    font-family:inherit;
+    color:var(--ink);
+  }
+  input:focus, select:focus{
+    outline:none;
+    background:#fff9ea;
+    border-radius:4px;
+  }
+  .pill-group{display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px;}
+  .priced-list{display:flex; flex-direction:column; gap:8px;}
+  .priced-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    border:1.5px solid var(--line);
+    border-radius:20px;
+    padding:6px 8px 6px 14px;
+    background:#fff;
+  }
+  .priced-item .pill{border:none; padding:6px 4px; border-radius:0; background:transparent; flex:1;}
+  .priced-item.on{border-color:var(--accent); background:var(--accent-soft);}
+  .priced-item.on .pill{background:var(--accent); color:#fff; font-weight:700; border-radius:16px; padding:8px 14px;}
+  .price-input-wrap{
+    display:flex; align-items:center; gap:2px;
+    background:#f4f2ec; border-radius:14px; padding:5px 10px;
+    flex-shrink:0;
+  }
+  .price-input-wrap span{font-size:12px; color:var(--muted);}
+  .custom-single-item{
+    display:flex; align-items:center; gap:8px;
+    border:1.5px solid var(--accent); border-radius:20px;
+    padding:6px 8px 6px 14px; background:var(--accent-soft); margin-top:8px;
+  }
+  .custom-single-item input.custom-single-label{
+    flex:1; border:none; background:transparent; font-size:14px; color:var(--ink); min-width:0;
+  }
+  .custom-single-item input.custom-single-label::placeholder{color:var(--muted);}
+  .custom-single-item .custom-single-remove{
+    flex-shrink:0; width:26px; height:26px; border-radius:50%; border:none;
+    background:#fff; color:var(--accent); font-weight:800; font-size:16px; line-height:1;
+  }
+  .price-input-wrap input{
+    width:78px; border:none; background:transparent; font-size:14px;
+    padding:2px; text-align:right; font-family:inherit;
+  }
+  .price-input-wrap input:focus{outline:none;}
+  .pill{
+    border:1.5px solid var(--line);
+    background:#fff;
+    padding:9px 14px;
+    border-radius:20px;
+    font-size:13.5px;
+    color:var(--ink);
+    user-select:none;
+  }
+  .pill.on{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+    font-weight:700;
+  }
+  .pill.navy.on{
+    background:var(--navy);
+    border-color:var(--navy);
+  }
+  .sub-note{
+    padding:0 12px 10px;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .chip-input{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    border:1.5px solid var(--line);
+    border-radius:20px;
+    padding:6px 6px 6px 14px;
+    background:#fff;
+  }
+  .chip-input input{padding:2px 4px; width:110px;}
+  textarea{
+    width:100%;
+    border:none;
+    min-height:70px;
+    font-family:inherit;
+    font-size:14px;
+    padding:12px;
+    resize:vertical;
+    background:transparent;
+  }
+  textarea:focus{outline:none; background:#fff9ea;}
+
+  /* car diagram */
+  .diagram-wrap{padding:14px; text-align:center;}
+  .diagram-hint{font-size:12px; color:var(--muted); margin-bottom:8px;}
+  svg{max-width:340px; width:100%; touch-action:manipulation;}
+  .mark{cursor:pointer;}
+  .compass{font-size:13px; font-weight:700; fill:var(--navy);}
+  .mark-list{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:10px;}
+  .mark-tag{
+    background:var(--accent-soft);
+    color:var(--accent);
+    border:1px solid var(--accent);
+    font-size:12px;
+    padding:5px 10px;
+    border-radius:14px;
+  }
+  .mark-tag span{margin-left:6px; font-weight:800; cursor:pointer;}
+  .clear-btn{
+    margin-top:10px;
+    font-size:12px;
+    color:var(--muted);
+    background:none;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:6px 12px;
+  }
+
+  .footer-actions{
+    position:fixed;
+    bottom:0; left:0; right:0;
+    background:#fff;
+    border-top:1px solid var(--line);
+    padding:10px 16px;
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    z-index:20;
+  }
+  .footer-actions button{
+    flex:1;
+    max-width:220px;
+    padding:13px;
+    border-radius:8px;
+    font-size:14.5px;
+    font-weight:700;
+    border:none;
+  }
+  .btn-save{background:var(--navy); color:#fff;}
+  .btn-new{background:#eee; color:var(--ink);}
+  .btn-list{background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent);}
+
+  .modal-bg{
+    position:fixed; inset:0; background:rgba(20,20,20,0.45);
+    display:none; align-items:flex-end; justify-content:center; z-index:50;
+  }
+  .modal-bg.show{display:flex;}
+  .modal{
+    background:#fff; width:100%; max-width:900px; max-height:80vh;
+    border-radius:16px 16px 0 0; overflow-y:auto; padding:16px;
+  }
+  .modal h3{margin:4px 0 12px; color:var(--navy);}
+  .entry{
+    border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px;
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
+  }
+  .entry .info{font-size:13px; line-height:1.5;}
+  .entry .info b{font-size:14.5px;}
+  .entry button{
+    background:var(--navy-soft); color:var(--navy); border:none; border-radius:6px;
+    padding:8px 12px; font-size:12.5px; font-weight:700; white-space:nowrap;
+  }
+  .close-modal{
+    display:block; margin:14px auto 4px; background:none; border:none;
+    color:var(--muted); font-size:13px; text-decoration:underline;
+  }
+  .toast{
+    position:fixed; top:70px; left:50%; transform:translateX(-50%);
+    background:var(--navy); color:#fff; padding:10px 18px; border-radius:20px;
+    font-size:13px; font-weight:700; z-index:60; opacity:0; transition:opacity .25s;
+    pointer-events:none; max-width:90vw; text-align:center; word-break:break-word;
+  }
+  .toast.show{opacity:1;}
+  .empty{text-align:center; color:var(--muted); font-size:13px; padding:20px 0;}
+  .company-block{padding:14px; font-size:13.5px; line-height:1.7; color:var(--ink);}
+  .company-block .name{font-weight:800; font-size:15px;}
+  .intro{padding:0 14px 14px; font-size:13.5px; line-height:1.8; color:var(--ink);}
+
+  .item{
+    display:flex;
+    gap:10px;
+    padding:12px 14px;
+    border-bottom:1px solid var(--line);
+    align-items:flex-start;
+  }
+  .item:last-child{border-bottom:none;}
+  .checkbox{
+    width:26px; height:26px; min-width:26px;
+    border:2px solid var(--navy);
+    border-radius:6px;
+    margin-top:2px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; color:#fff; font-weight:800;
+    background:#fff;
+  }
+  .checkbox.checked{background:var(--ok); border-color:var(--ok);}
+  .item-text{font-size:13.5px; line-height:1.8;}
+  .item-text b{font-weight:700;}
+  .item-text .sub{font-size:12.5px; color:var(--muted); display:block; margin-top:3px;}
+  .item-text .warn{font-size:12.5px; color:var(--accent); display:block; margin-top:3px; font-weight:700;}
+
+  .row{display:grid; grid-template-columns:120px 1fr; border-bottom:1px solid var(--line);}
+  .row:last-child{border-bottom:none;}
+  .label{
+    background:#f4f2ec; padding:12px; font-size:13px; font-weight:700; color:var(--muted);
+    display:flex; align-items:center; border-right:1px solid var(--line);
+  }
+  .val{padding:8px 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  input[type=text], input[type=date], input[type=time], input[type=number]{
+    border:none; background:transparent; font-size:15px; padding:8px 4px; font-family:inherit; color:var(--ink);
+  }
+  input:focus{outline:none; background:#fff9ea; border-radius:4px;}
+  .pill-group{display:flex; flex-wrap:wrap; gap:8px;}
+  .pill{
+    border:1.5px solid var(--line); background:#fff; padding:9px 14px; border-radius:20px;
+    font-size:13.5px; color:var(--ink); user-select:none;
+  }
+  .pill.on{background:var(--navy); border-color:var(--navy); color:#fff; font-weight:700;}
+  .period-block{padding:10px 12px; display:flex; flex-direction:column; gap:10px;}
+  .period-line{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13.5px;}
+  .period-line span{color:var(--muted); font-size:12.5px; min-width:32px;}
+  .period-line input[type=date], .period-line input[type=time]{
+    background:#f4f2ec; border-radius:8px; padding:8px 10px; font-size:14px;
+  }
+
+  .sig-wrap{padding:14px;}
+  .sig-note{font-size:13px; color:var(--ink); margin-bottom:8px; font-weight:700;}
+  canvas{
+    width:100%; height:180px; background:#fff; border:1.5px dashed var(--line); border-radius:10px;
+    touch-action:none;
+  }
+  .sig-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:8px;}
+  .sig-actions button{
+    background:#eee; color:var(--ink); border:none; border-radius:16px; padding:8px 16px; font-size:12.5px; font-weight:700;
+  }
+
+  .footer-actions{
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    padding:10px 16px; display:flex; gap:10px; justify-content:center; z-index:20;
+  }
+  .footer-actions button{
+    flex:1; max-width:220px; padding:13px; border-radius:8px; font-size:14.5px; font-weight:700; border:none;
+  }
+  .btn-save{background:var(--navy); color:#fff;}
+  .btn-new{background:#eee; color:var(--ink);}
+
+  .modal-bg{
+    position:fixed; inset:0; background:rgba(20,20,20,0.45);
+    display:none; align-items:flex-end; justify-content:center; z-index:50;
+  }
+  .modal-bg.show{display:flex;}
+  .modal{
+    background:#fff; width:100%; max-width:900px; max-height:80vh; border-radius:16px 16px 0 0;
+    overflow-y:auto; padding:16px;
+  }
+  .modal h3{margin:4px 0 12px; color:var(--navy);}
+  .entry{
+    border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px;
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
+  }
+  .entry .info{font-size:13px; line-height:1.5;}
+  .entry .info b{font-size:14.5px;}
+  .entry button{
+    background:var(--navy-soft); color:var(--navy); border:none; border-radius:6px;
+    padding:8px 12px; font-size:12.5px; font-weight:700; white-space:nowrap;
+  }
+  .close-modal{
+    display:block; margin:14px auto 4px; background:none; border:none; color:var(--muted);
+    font-size:13px; text-decoration:underline;
+  }
+  .toast{
+    position:fixed; top:70px; left:50%; transform:translateX(-50%);
+    background:var(--navy); color:#fff; padding:10px 18px; border-radius:20px;
+    font-size:13px; font-weight:700; z-index:60; opacity:0; transition:opacity .25s; pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+  .empty{text-align:center; color:var(--muted); font-size:13px; padding:20px 0;}
+  .progress{
+    padding:8px 14px; font-size:12.5px; color:var(--muted); background:#f4f2ec; text-align:center;
+  }
+  .staff-checkbox{
+    display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line);
+  }
+  .staff-checkbox:last-child{border-bottom:none;}
+  .staff-checkbox .checkbox{width:24px; height:24px; min-width:24px;}
+  .staff-checkbox .label-text{font-size:13.5px; font-weight:700; color:var(--ink);}
+
+  .photo-item{padding:10px 12px; border-bottom:1px solid var(--line);}
+  .photo-item:last-child{border-bottom:none;}
+  .photo-head{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+  .photo-head .checkbox{width:24px; height:24px; min-width:24px; cursor:pointer;}
+  .photo-head .label-text{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .photo-body{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .photo-preview{width:110px; height:70px; object-fit:cover; border-radius:8px; border:1px solid var(--line);}
+  .photo-btn{
+    background:var(--navy-soft); color:var(--navy); border:1.5px solid var(--navy);
+    padding:9px 16px; border-radius:20px; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .share-btn{
+    background:var(--accent); color:#fff; border:none; border-radius:10px;
+    padding:13px; font-size:14.5px; font-weight:700;
+  }
+
+  /* --- integrated app header/tabs --- */
+  header{padding:14px 16px 0; display:block;}
+  .header-top{display:flex; align-items:center; justify-content:space-between; padding-bottom:10px;}
+  .brand{display:flex; flex-direction:column; line-height:1.2;}
+  .brand .logo{font-weight:800; font-size:19px; letter-spacing:0.5px;}
+  .brand .sub{font-size:10.5px; color:#b9c6d3; letter-spacing:1px;}
+  .tabs{display:flex; border-top:1px solid rgba(255,255,255,0.18);}
+  .tab-btn{
+    flex:1; background:transparent; border:none; color:#b9c6d3;
+    padding:12px 6px; font-size:13px; font-weight:700; letter-spacing:1px;
+    border-bottom:3px solid transparent;
+  }
+  .tab-btn.active{color:#fff; border-bottom-color:var(--accent);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+#quotePrintArea{ display:none; }
+@media print{
+  body > *:not(#quotePrintArea){ display:none !important; }
+  #quotePrintArea{
+    display:block !important;
+    padding:28px;
+    font-family:"Hiragino Sans","Yu Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+    color:#1c1f26;
+  }
+  #quotePrintArea .q-header{ display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #16324f; padding-bottom:10px; margin-bottom:16px; }
+  #quotePrintArea .q-title{ font-size:22px; font-weight:800; letter-spacing:4px; }
+  #quotePrintArea .q-company{ font-size:12px; line-height:1.7; text-align:right; }
+  #quotePrintArea .q-meta{ font-size:13px; margin-bottom:14px; line-height:1.8; }
+  #quotePrintArea table{ width:100%; border-collapse:collapse; margin-bottom:16px; }
+  #quotePrintArea th, #quotePrintArea td{ border:1px solid #999; padding:6px 8px; font-size:13px; text-align:left; }
+  #quotePrintArea th{ background:#e8eef3; }
+  #quotePrintArea td.q-amount, #quotePrintArea th.q-amount{ text-align:right; white-space:nowrap; }
+  #quotePrintArea .q-total-row td{ font-weight:800; font-size:15px; background:#f7e6e1; }
+  #quotePrintArea .q-note{ font-size:11px; color:#555; margin-top:10px; line-height:1.6; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="brand">
+      <div class="logo">KeePer</div>
+      <div class="sub">FOR SMART CAR LIFE</div>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button id="settingsBtn" style="background:transparent; border:1.5px solid #fff; color:#fff; padding:8px 12px; border-radius:6px; font-size:12.5px; font-weight:700;">Google設定</button>
+      <button id="listBtn">記録一覧</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="order">オーダーチェックシート</button>
+    <button class="tab-btn" data-tab="daisha">代車借用書</button>
+  </div>
+</header>
+
+<main>
+  <div id="tab-order" class="tab-panel active">
+  <div id="storageModeNote" style="font-size:11.5px; color:var(--muted); text-align:center; padding:2px 0 10px;"></div>
+
+
+  <!-- 顧客情報 -->
+  <div class="card">
+    <div class="card-head">お客様情報</div>
+    <div class="row">
+      <div class="label">フリガナ</div>
+      <div class="val">
+        <input type="text" id="kanaSei" placeholder="セイ" style="flex:1;">
+        <input type="text" id="kanaMei" placeholder="メイ" style="flex:1;">
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">お客様名前</div>
+      <div class="val">
+        <input type="text" id="nameSei" placeholder="姓" style="flex:1;">
+        <input type="text" id="nameMei" placeholder="名" style="flex:1;">
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">予約日</div>
+      <div class="val"><input type="date" id="resDate"></div>
+    </div>
+    <div class="row">
+      <div class="label">郵便番号<br>・住所</div>
+      <div class="val" style="flex-wrap:wrap;">
+        <input type="text" id="zip" placeholder="〒0000000（ハイフンなし）" inputmode="numeric" style="max-width:180px;">
+        <input type="text" id="address" placeholder="ご住所（都道府県〜町域）">
+        <input type="text" id="addressDetail" placeholder="番地・建物名" style="width:100%; margin-top:6px;">
+        <div id="zipStatus" style="width:100%; font-size:12px; color:var(--muted); padding-top:2px;"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">ご連絡先</div>
+      <div class="val" style="gap:6px;">
+        <input type="tel" id="tel1" placeholder="090" inputmode="numeric" maxlength="4" style="max-width:70px; text-align:center;">
+        <span>-</span>
+        <input type="tel" id="tel2" placeholder="1234" inputmode="numeric" maxlength="4" style="max-width:70px; text-align:center;">
+        <span>-</span>
+        <input type="tel" id="tel3" placeholder="5678" inputmode="numeric" maxlength="4" style="max-width:70px; text-align:center;">
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">お誕生日</div>
+      <div class="val">
+        <select id="era" style="max-width:70px;">
+          <option value="S">S</option>
+          <option value="H">H</option>
+          <option value="R">R</option>
+        </select>
+        <input type="text" id="birthY" placeholder="年" style="max-width:60px;">
+        <input type="text" id="birthM" placeholder="月" style="max-width:50px;">
+        <input type="text" id="birthD" placeholder="日" style="max-width:50px;">
+      </div>
+    </div>
+  </div>
+
+  <!-- 車両情報 -->
+  <div class="card">
+    <div class="card-head">車両情報</div>
+    <div class="row">
+      <div class="label">車種</div>
+      <div class="val" style="flex-wrap:wrap; gap:6px;">
+        <select id="carMaker" style="max-width:150px;">
+          <option value="">メーカー選択</option>
+        </select>
+        <select id="carModelSelect" style="max-width:180px;">
+          <option value="">車種選択</option>
+        </select>
+        <input type="text" id="carModel" placeholder="車種名（プルダウン選択 または 手入力）" style="width:100%; margin-top:6px;">
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">ナンバー</div>
+      <div class="val" style="flex-wrap:wrap; gap:6px;">
+        <select id="plateArea" style="max-width:130px;">
+          <option value="">運輸支局選択</option>
+        </select>
+        <input type="text" id="plateClass" placeholder="分類番号" inputmode="numeric" maxlength="3" style="max-width:80px; text-align:center;">
+        <select id="plateHiragana" style="max-width:80px;">
+          <option value="">かな</option>
+        </select>
+        <input type="text" id="plateNum1" placeholder="12" inputmode="numeric" maxlength="2" style="max-width:56px; text-align:center;">
+        <span>-</span>
+        <input type="text" id="plateNum2" placeholder="34" inputmode="numeric" maxlength="2" style="max-width:56px; text-align:center;">
+        <input type="text" id="carNumber" placeholder="ナンバー（自動入力・手入力可）" style="width:100%; margin-top:6px;">
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">サイズ</div>
+      <div class="val" id="sizeGroup">
+        <div class="pill-group" style="padding:0;">
+          <div class="pill" data-group="size">SS</div>
+          <div class="pill" data-group="size">S</div>
+          <div class="pill" data-group="size">M</div>
+          <div class="pill" data-group="size">L</div>
+          <div class="pill" data-group="size">LL</div>
+          <div class="pill" data-group="size">XL</div>
+        </div>
+        <input type="text" id="sizeOther" placeholder="その他 (　)" style="max-width:130px;">
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">入庫分類</div>
+      <div class="val" style="display:block; padding:10px 12px;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">新規</div>
+        <div class="pill-group" style="padding:0 0 10px;">
+          <div class="pill" data-group="new">看板</div>
+          <div class="pill" data-group="new">紹介</div>
+          <div class="pill" data-group="new">HP(FMC)</div>
+          <div class="pill" data-group="new">HP(IZ)</div>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">既存</div>
+        <div class="pill-group" style="padding:0;">
+          <div class="pill" data-group="existing">販売</div>
+          <div class="pill" data-group="existing">車検</div>
+          <div class="pill" data-group="existing">オイル交換</div>
+          <div class="pill" data-group="existing">鈑金</div>
+          <div class="pill" data-group="existing">2台目</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- オーダー -->
+  <div class="card">
+    <div class="card-head">オーダー</div>
+
+    <div class="row">
+      <div class="label">受注状況</div>
+      <div class="val" style="display:block; padding:10px 12px;">
+        <div class="pill-group" style="padding:0 0 8px;">
+          <div class="pill navy" data-group="uketsuke">初施工</div>
+          <div class="pill navy" data-group="uketsuke">メンテナンス</div>
+        </div>
+        <div id="maintCountWrap" style="display:flex; align-items:center; gap:10px;">
+          <button type="button" id="maintCountMinus" style="width:36px; height:36px; border-radius:50%; border:1.5px solid var(--navy); background:#fff; color:var(--navy); font-size:20px; font-weight:800; line-height:1;">－</button>
+          <input type="number" id="maintCount" value="1" min="1" inputmode="numeric" style="max-width:70px; text-align:center;">
+          <span>回目</span>
+          <button type="button" id="maintCountPlus" style="width:36px; height:36px; border-radius:50%; border:1.5px solid var(--navy); background:#fff; color:var(--navy); font-size:20px; font-weight:800; line-height:1;">＋</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">ボディー<br>コーティング</div>
+      <div class="val" style="display:block; padding:10px 12px;">
+        <div class="pill-group" style="padding:0 0 8px;">
+          <div class="pill" data-group="coating" data-price="クリスタルキーパー">クリスタルキーパー</div>
+          <div class="pill" data-group="coating" data-price="フレッシュキーパー">フレッシュキーパー</div>
+          <div class="pill" data-group="coating" data-price="エコダイヤキーパー">エコダイヤキーパー</div>
+          <div class="pill" data-group="coating" data-price="ダイヤⅡキーパー">ダイヤⅡキーパー</div>
+          <div class="pill" data-group="coating" data-price="アイアンプロテクトキーパー">アイアンプロテクトキーパー</div>
+          <div class="pill" data-group="coating" data-price="EXキーパー">EXキーパー</div>
+          <div class="pill" data-group="coating" data-price="マットテクスチャキーパー">マットテクスチャキーパー</div>
+        </div>
+        <input type="text" id="partialCoating" placeholder="部分施工 (　)">
+        <div class="sub-note" style="padding:8px 0 0;">※価格はサイズを選択すると自動で表示されます</div>
+
+        <div id="priceBox" style="display:none; margin-top:10px; border:1px solid var(--line); border-radius:10px; overflow:hidden;">
+          <div style="background:var(--navy); color:#fff; padding:9px 14px; font-size:13px; font-weight:700; letter-spacing:1px; display:flex; justify-content:space-between;">
+            <span id="priceMenuName">コーティング料金</span>
+            <span id="priceSizeName"></span>
+          </div>
+          <div style="padding:12px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; border-bottom:1px dashed var(--line);">
+              <span style="font-size:13px; color:var(--muted);">参考価格（税込）</span>
+              <span id="priceBase" style="font-size:19px; font-weight:800; color:var(--ink);">-</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; padding:6px 0;">
+              <span style="font-size:13px; color:var(--accent);">5%OFF</span>
+              <span id="price5" style="font-size:15px; font-weight:700; color:var(--accent);">-</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; padding:6px 0;">
+              <span style="font-size:13px; color:var(--accent);">15%OFF</span>
+              <span id="price15" style="font-size:15px; font-weight:700; color:var(--accent);">-</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; padding:6px 0;">
+              <span style="font-size:13px; color:var(--accent);">20%OFF</span>
+              <span id="price20" style="font-size:15px; font-weight:700; color:var(--accent);">-</span>
+            </div>
+          </div>
+        </div>
+        <div id="priceNote" class="sub-note" style="display:none; padding-top:8px;"></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">研磨</div>
+      <div class="val" style="display:block; padding:10px 12px;">
+        <div class="priced-list" id="polishList">
+          <div class="priced-item" data-group="polish" data-amount="0">
+            <div class="pill">細密研磨</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" placeholder="要見積り" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="polish" data-amount="0">
+            <div class="pill">鏡面研磨</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" placeholder="要見積り" inputmode="numeric"></div>
+          </div>
+        </div>
+        <input type="text" id="polishOther" placeholder="その他 (　)" style="margin-top:6px;">
+        <div class="sub-note" style="padding:6px 0 0;">※研磨は塗装状態により金額が変動するため、金額はスタッフが直接入力してください</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">サイド<br>メニュー</div>
+      <div class="val" style="display:block; padding:10px 12px;">
+        <div class="priced-list" id="sideList">
+          <div class="priced-item" data-group="side" data-amount="6820">
+            <div class="pill">無塗装樹脂パーツキーパー（各パーツ単品施工）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="6820" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="10010">
+            <div class="pill">無塗装樹脂パーツキーパー（全ての樹脂パーツ）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="10010" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="18700">
+            <div class="pill">無塗装樹脂パーツキーパー（面積の大きい車）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="18700" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="29700">
+            <div class="pill">無塗装樹脂パーツキーパー（ランドクルーザーFJ・ラングラー・リフター）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="29700" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="6930">
+            <div class="pill">シリコンウインドウKeePer（フロント）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="6930" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="15840">
+            <div class="pill">シリコンウインドウKeePer（全面）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="15840" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="6820">
+            <div class="pill">メッキクリーニング</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="6820" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="11550">
+            <div class="pill">ホイールコーティング シングル（〜15インチ）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="11550" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="13090">
+            <div class="pill">ホイールコーティング シングル（16〜19インチ）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="13090" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="15400">
+            <div class="pill">ホイールコーティング シングル（20インチ〜）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="15400" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="17160">
+            <div class="pill">ホイールコーティング ダブル（〜15インチ）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="17160" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="19580">
+            <div class="pill">ホイールコーティング ダブル（16〜19インチ）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="19580" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="23210">
+            <div class="pill">ホイールコーティング ダブル（20インチ〜）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="23210" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="9570">
+            <div class="pill">ヘッドライトクリーン&プロテクト</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="9570" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="9130">
+            <div class="pill">ヘッドライトコーティング（普通車）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="9130" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="side" data-amount="7370">
+            <div class="pill">ヘッドライトコーティング（軽自動車）</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" value="7370" inputmode="numeric"></div>
+          </div>
+        </div>
+        <div class="sub-note" style="padding:6px 0 0;">※公式参考価格の初期値です。サイズや車種により異なるため必要に応じて金額欄を修正してください</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">洗車</div>
+      <div class="val" style="display:block; padding:10px 12px;">
+        <div class="priced-list" id="washList">
+          <div class="priced-item" data-group="wash" data-amount="0">
+            <div class="pill">純水洗車(手洗い)</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" placeholder="要見積り" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="wash" data-amount="0">
+            <div class="pill">純水洗車(洗車機)</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" placeholder="要見積り" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="wash" data-amount="0">
+            <div class="pill">ミネラル取洗車</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" placeholder="要見積り" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="wash" data-amount="0">
+            <div class="pill">ミネラルオフ</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" placeholder="要見積り" inputmode="numeric"></div>
+          </div>
+        </div>
+        <div class="sub-note" style="padding:6px 0 0;">※洗車料金は車種・店舗により異なるため金額欄に入力してください</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">車内清掃</div>
+      <div class="val">
+        <input type="text" id="interiorClean" placeholder="内容を入力" style="flex:1; min-width:120px;">
+        <div class="price-input-wrap"><span>¥</span><input type="number" id="interiorCleanPrice" placeholder="金額" inputmode="numeric"></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">単品作業</div>
+      <div class="val" style="display:block; padding:10px 12px;">
+        <div class="priced-list" id="singleList">
+          <div class="priced-item" data-group="single" data-amount="0">
+            <div class="pill">掃除機かけ</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" placeholder="要見積り" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="single" data-amount="0">
+            <div class="pill">内窓拭き</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" placeholder="要見積り" inputmode="numeric"></div>
+          </div>
+          <div class="priced-item" data-group="single" data-amount="0">
+            <div class="pill">オゾン</div>
+            <div class="price-input-wrap"><span>¥</span><input type="number" class="item-price" placeholder="要見積り" inputmode="numeric"></div>
+          </div>
+        </div>
+        <div id="customSingleList" style="margin-top:8px;"></div>
+        <button id="addCustomSingleBtn" type="button" style="margin-top:8px; width:100%; padding:10px; border:1.5px dashed var(--line); background:transparent; border-radius:8px; color:var(--muted); font-weight:700;">＋ その他の作業を追加</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">支払い方法</div>
+      <div class="val" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="pill navy" data-group="payment">現金</div>
+        <div class="pill navy" data-group="payment">クレジットカード</div>
+        <div class="pill navy" data-group="payment">PayPay</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">施工写真の<br>撮影</div>
+      <div class="val" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="pill navy" data-group="photoConsent">協力する</div>
+        <div class="pill navy" data-group="photoConsent">協力しない</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label">その他<br>・備考</div>
+
+      <div class="val"><textarea id="notes" placeholder="その他・備考を入力"></textarea></div>
+    </div>
+  </div>
+
+  <!-- 合計金額 -->
+  <div class="card" id="totalBox" style="display:none; border-color:var(--accent);">
+    <div class="card-head" style="background:var(--accent); color:#fff;">合計金額（お会計）</div>
+    <div style="padding:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; padding:8px 0; border-bottom:1px dashed var(--line);">
+        <span style="font-size:13.5px; color:var(--muted);">合計（税込・割引なし）</span>
+        <span id="totalBase" style="font-size:24px; font-weight:800; color:var(--ink);">-</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; padding:8px 0;">
+        <span style="font-size:14px; color:var(--accent); font-weight:700;">コーティング5%OFF適用後</span>
+        <span id="total5" style="font-size:17px; font-weight:800; color:var(--accent);">-</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; padding:8px 0;">
+        <span style="font-size:14px; color:var(--accent); font-weight:700;">コーティング15%OFF適用後</span>
+        <span id="total15" style="font-size:17px; font-weight:800; color:var(--accent);">-</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; padding:8px 0;">
+        <span style="font-size:14px; color:var(--accent); font-weight:700;">コーティング20%OFF適用後</span>
+        <span id="total20" style="font-size:17px; font-weight:800; color:var(--accent);">-</span>
+      </div>
+      <div class="sub-note" style="padding:8px 0 0;">※割引はコーティング料金のみに適用され、アラカルト項目は定価のまま合計されます</div>
+      <button id="quotePdfBtn" class="share-btn" style="width:100%; margin-top:12px;">お客様提示用 見積書を作成（PDF保存）</button>
+    </div>
+  </div>
+
+  <!-- 車両図 -->
+  <div class="card">
+    <div class="card-head">車両図（タップして傷・汚れ箇所をマーク）</div>
+    <div class="diagram-wrap">
+      <div class="diagram-hint">車体の上をタップすると赤い印がつきます。印をタップすると削除されます。</div>
+      <svg id="carSvg" viewBox="0 0 300 460">
+        <text x="150" y="20" text-anchor="middle" class="compass">右</text>
+        <text x="150" y="450" text-anchor="middle" class="compass">左</text>
+        <text x="20" y="235" text-anchor="middle" class="compass">前</text>
+        <text x="280" y="235" text-anchor="middle" class="compass">後</text>
+
+        <!-- wheels -->
+        <ellipse cx="70" cy="70" rx="22" ry="14" fill="none" stroke="#333" stroke-width="2"/>
+        <ellipse cx="230" cy="70" rx="22" ry="14" fill="none" stroke="#333" stroke-width="2"/>
+        <ellipse cx="70" cy="390" rx="22" ry="14" fill="none" stroke="#333" stroke-width="2"/>
+        <ellipse cx="230" cy="390" rx="22" ry="14" fill="none" stroke="#333" stroke-width="2"/>
+
+        <!-- body outline -->
+        <path d="M60,40 L240,40 L260,90 L260,370 L240,420 L60,420 L40,370 L40,90 Z"
+              fill="#f4f2ec" stroke="#333" stroke-width="2.5"/>
+        <!-- cabin -->
+        <path d="M90,110 L210,110 L225,170 L225,290 L210,350 L90,350 L75,290 L75,170 Z"
+              fill="#fff" stroke="#333" stroke-width="1.5"/>
+        <!-- centerline -->
+        <line x1="150" y1="40" x2="150" y2="420" stroke="#999" stroke-width="1" stroke-dasharray="4 4"/>
+
+        <g id="markLayer"></g>
+      </svg>
+      <div class="mark-list" id="markList"></div>
+      <button class="clear-btn" id="clearMarks">印をすべて消す</button>
+    </div>
+  </div>
+
+
+  </div>
+  <div id="tab-daisha" class="tab-panel">
+  <div class="card">
+    <div class="company-block">
+      <div class="name">株式会社　サンアイク</div>
+      〒297-0008　千葉県茂原市渋谷912<br>
+      TEL：0475-36-2671
+    </div>
+    <div class="intro">
+      私は貴社より下記車両を借用しました。つきましては下記事項を厳守の上、借用期間欄に記載した期日までに返却することを約束いたします。
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="padding:14px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="font-size:14px; font-weight:700; color:var(--navy);">今回、代車を貸与する</div>
+      <div class="pill" id="daishaToggle" data-on="false">オフ</div>
+    </div>
+  </div>
+
+  <div id="daishaContent" style="display:none;">
+
+  <div class="card">
+    <div class="card-head">確約事項（該当項目をタップしてチェック）</div>
+    <div class="progress" id="progressNote">0 / 7 項目にチェック</div>
+
+    <div class="item" data-item="1">
+      <div class="checkbox">✓</div>
+      <div class="item-text">
+        私は、下記車両の<b>使用期間を遵守</b>します。
+        <span class="sub">（但し、貴社側の都合により下記車両の借用期間を延長せざるを得ない場合には、貴社と協議の上で別途取り決めた日を返却日とします。）</span>
+      </div>
+    </div>
+
+    <div class="item" data-item="2">
+      <div class="checkbox">✓</div>
+      <div class="item-text">
+        私は、この車両を借用中の<b>使用分のガソリン補給</b>を行い返却します。
+        <span class="warn">ガソリンが満タンで返却でない場合はガソリン代を請求させて頂きます。</span>
+        <span class="sub">※軽自動車　メーター半分以上：3,300円／メーター半分以下：6,600円</span>
+        <span class="sub">※普通自動車　メーター半分以上：4,950円／メーター半分以下：9,900円</span>
+      </div>
+    </div>
+
+    <div class="item" data-item="3">
+      <div class="checkbox">✓</div>
+      <div class="item-text">
+        私は、貴社から下記車両の返却要求があった場合には、下記借用期間の定めにかかわらず、返却要求のあった日を返却日へと変更することに同意し、直ちに下記車両を返却することを確約いたします。
+      </div>
+    </div>
+
+    <div class="item" data-item="4">
+      <div class="checkbox">✓</div>
+      <div class="item-text">
+        借受人以外の方は代車の運転ができません。
+      </div>
+    </div>
+
+    <div class="item" data-item="5">
+      <div class="checkbox">✓</div>
+      <div class="item-text">
+        私は、道路交通法その他関係法令を厳守して下記車両を使用するものとし、借用期間中に下記車両に関して発生した対人事故・対物事故・自損事故、交通違反反則金（放置駐車違反金を含む）に関しては、自己責任とし、事故に関する費用を全額負担いたします。
+        <span class="sub">※事故やトラブルが起こってしまった場合、基本的にお客様の任意保険での対応になります。</span>
+        <span class="sub">※事故の続発を防ぎ、負傷者の安全を確保したうえで直ちに当店までご連絡ください。</span>
+      </div>
+    </div>
+
+    <div class="item" data-item="6">
+      <div class="checkbox">✓</div>
+      <div class="item-text">
+        私は、下記車両で喫煙や故意に汚したり破壊したり致しません。
+        <span class="warn">※全車両、禁煙車になります。喫煙した形跡や臭いが発覚しましたら別途車両清掃代50,000円をお支払い頂きます。</span>
+        <span class="sub">※ペットの同乗は原則禁止になります。やむを得ない場合以外は極力ご遠慮下さい。</span>
+        <span class="warn">ペット乗車が発覚した場合は、別途車両清掃代100,000円をお支払頂きます。</span>
+        <span class="sub">※鍵の紛失→通常の鍵を紛失した場合、5,500円ご負担いただきます。スマートキー等の特殊な鍵の場合、全額ご負担いただきます。</span>
+      </div>
+    </div>
+
+    <div class="item" data-item="7">
+      <div class="checkbox">✓</div>
+      <div class="item-text">
+        私は、貴社から個人情報の取り扱いについて説明を受け、本書に記載した私の個人情報が貴社が下記車両の管理を行う目的で利用されることを理解しました。
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">車両情報</div>
+    <div class="row">
+      <div class="label">使用目的</div>
+      <div class="val">
+        <div class="pill-group">
+          <div class="pill" data-group="purpose">コーティング施工</div>
+          <div class="pill" data-group="purpose">メンテナンス</div>
+          <div class="pill" data-group="purpose">その他</div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">借用期間</div>
+      <div class="val" style="display:block; padding:0;">
+        <div class="period-block">
+          <div class="period-line">
+            <span>開始</span>
+            <input type="date" id="startDate">
+            <input type="time" id="startTime">
+          </div>
+          <div class="period-line">
+            <span>終了</span>
+            <input type="date" id="endDate">
+            <input type="time" id="endTime">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">お客様記入欄</div>
+    <div class="row">
+      <div class="label">お名前</div>
+      <div class="val"><input type="text" id="customerName" placeholder="借受人お名前" style="flex:1;"></div>
+    </div>
+    <div class="row">
+      <div class="label">日付</div>
+      <div class="val"><input type="date" id="signDate"></div>
+    </div>
+    <div style="padding:8px 14px 0; font-size:12.5px; color:var(--muted);">上記内容・金額に全て確認し同意いたします。</div>
+    <div class="sig-wrap">
+      <div class="sig-note">署名（画面に指またはApple Pencilでサインしてください）</div>
+      <canvas id="sigCanvas"></canvas>
+      <div class="sig-actions">
+        <button id="clearSig">署名をクリア</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">スタッフ記入欄</div>
+
+    <div class="photo-item" data-photo="license">
+      <div class="photo-head">
+        <div class="checkbox">✓</div>
+        <div class="label-text">運転免許証　撮影・確認済み</div>
+      </div>
+      <div class="photo-body">
+        <img class="photo-preview" id="licensePreview" style="display:none;">
+        <label class="photo-btn">
+          写真を撮る／選択
+          <input type="file" accept="image/*" capture="environment" id="licenseFile" style="display:none;">
+        </label>
+      </div>
+    </div>
+
+    <div class="photo-item" data-photo="insurance">
+      <div class="photo-head">
+        <div class="checkbox">✓</div>
+        <div class="label-text">任意保険証券　撮影・確認済み</div>
+      </div>
+      <div class="photo-body">
+        <img class="photo-preview" id="insurancePreview" style="display:none;">
+        <label class="photo-btn">
+          写真を撮る／選択
+          <input type="file" accept="image/*" capture="environment" id="insuranceFile" style="display:none;">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">保存・共有</div>
+    <div style="padding:14px; display:flex; flex-direction:column; gap:10px;">
+      <div class="sub-note" style="padding:0;">この端末（アプリ内）に記録を保存した後、Googleドライブへ自動アップロードできます。</div>
+      <button id="autoUploadBtn" class="share-btn" style="background:var(--navy);">Googleドライブへ自動アップロード</button>
+      <div class="sub-note" id="autoUploadStatus" style="padding:0;">未設定です。ヘッダーの「Google設定」からGoogleアカウントと連携してください。</div>
+    </div>
+  </div>
+
+  </div>
+
+  </div>
+</main>
+
+<div class="footer-actions">
+  <button class="btn-new" id="newBtn">新規</button>
+  <button class="btn-save" id="saveBtn">保存する</button>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>保存された記録</h3>
+    <div id="entryList"></div>
+    <button class="close-modal" id="closeModal">閉じる</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="settingsModalBg">
+  <div class="modal">
+    <h3>Googleドライブ連携設定</h3>
+    <div style="font-size:12.5px; color:var(--muted); line-height:1.7; padding:0 2px 14px;">
+      Googleドライブへ自動アップロードするには、御社のGoogle CloudプロジェクトでOAuthクライアントID（種類：ウェブアプリケーション）を発行し、このページを配信しているドメインを「承認済みのJavaScript生成元」に登録する必要があります。発行したクライアントIDを下に入力してください。
+    </div>
+    <div class="row" style="margin-bottom:10px;">
+      <div class="label" style="border-right:none;">クライアントID</div>
+      <div class="val"><input type="text" id="googleClientId" placeholder="xxxxxxxx.apps.googleusercontent.com" style="flex:1;"></div>
+    </div>
+    <div class="row" style="margin-bottom:10px;">
+      <div class="label" style="border-right:none;">保存先フォルダID<br>（任意）</div>
+      <div class="val"><input type="text" id="googleFolderId" placeholder="未入力の場合はマイドライブ直下" style="flex:1;"></div>
+    </div>
+    <button id="saveGoogleSettings" class="btn-save" style="width:100%; margin-top:6px;">設定を保存</button>
+    <button id="googleLoginBtn" class="share-btn" style="width:100%; margin-top:10px;" disabled>クライアントIDを保存するとログインできます</button>
+    <div id="googleLoginStatus" class="sub-note" style="padding-top:10px; text-align:center;"></div>
+    <button class="close-modal" id="closeSettingsModal">閉じる</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="quotePrintArea"></div>
+
+<script>
+const RECORD_PREFIX = "sanaiku:";
+
+let marks = [];
+
+// Storage adapter: uses Claude's artifact storage bridge when available (window.storage),
+// and falls back to the browser's own localStorage when the file is opened directly
+// (e.g. saved to the iPad Home Screen / opened in Safari outside of claude.ai).
+const Store = {
+  hasBridge(){
+    return typeof window.storage !== "undefined" && window.storage !== null;
+  },
+  async set(key, value, shared){
+    if(this.hasBridge()){
+      return await window.storage.set(key, value, shared);
+    }
+    try{
+      localStorage.setItem(key, value);
+      return {key, value, shared};
+    }catch(e){
+      console.error("localStorage set failed", e);
+      return null;
+    }
+  },
+  async get(key, shared){
+    if(this.hasBridge()){
+      return await window.storage.get(key, shared);
+    }
+    const value = localStorage.getItem(key);
+    if(value === null){
+      throw new Error("キーが見つかりません: " + key);
+    }
+    return {key, value, shared};
+  },
+  async list(prefix, shared){
+    if(this.hasBridge()){
+      return await window.storage.list(prefix, shared);
+    }
+    const keys = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf(prefix)===0) keys.push(k);
+    }
+    return {keys, prefix, shared};
+  },
+  async delete(key, shared){
+    if(this.hasBridge()){
+      return await window.storage.delete(key, shared);
+    }
+    localStorage.removeItem(key);
+    return {key, deleted:true, shared};
+  }
+};
+
+// pill toggle logic (single-select within group for size/new/existing/uketsuke, multi for others)
+const singleSelectGroups = ["size","uketsuke","coating","payment","photoConsent"];
+
+document.querySelectorAll("#tab-order .pill").forEach(p=>{
+  p.addEventListener("click", ()=>{
+    const group = p.dataset.group;
+    if(singleSelectGroups.includes(group)){
+      const wasOn = p.classList.contains("on");
+      document.querySelectorAll('.pill[data-group="'+group+'"]').forEach(o=>o.classList.remove("on"));
+      if(!wasOn) p.classList.add("on");
+    } else {
+      p.classList.toggle("on");
+    }
+    if(group==="size" || group==="coating") updatePrice();
+  });
+});
+
+// ---- coating price data (official KeePer reference prices, tax included, as of 2026) ----
+const COATING_PRICES = {
+  "EXキーパー":            {SS:124960, S:136290, M:148500, L:165440, LL:176440, XL:192280},
+  "ダイヤⅡキーパー":        {SS:68310,  S:74250,  M:80300,  L:84920,  LL:92180,  XL:114730},
+  "フレッシュキーパー":      {SS:31020,  S:33330,  M:35970,  L:38390,  LL:43560,  XL:48620},
+  "クリスタルキーパー":      {SS:19690,  S:22000,  M:24640,  L:26950,  LL:32230,  XL:37290},
+  "アイアンプロテクトキーパー": {SS:81840,  S:90530,  M:99220,  L:105600, LL:116600, XL:148940},
+  "マットテクスチャキーパー":  {SS:37290,  S:41140,  M:44990,  L:48070,  LL:52910,  XL:67760},
+  // エコダイヤキーパーは現行の公式ラインナップに個別価格の掲載がないため未収録（店舗に要確認）
+};
+
+function yen(n){ return "¥" + n.toLocaleString("ja-JP"); }
+
+// side-menu items with official per-size pricing (SS/S/M/L/LL/XL). Items not listed here
+// have flat, size-independent official pricing (or no official standard, so stay manual).
+const SIDE_SIZE_PRICES = {
+  "シリコンウインドウKeePer（フロント）": {SS:6930, S:6930, M:6930, L:9570, LL:9570, XL:9570},
+  "シリコンウインドウKeePer（全面）": {SS:15840, S:15840, M:15840, L:17600, LL:17600, XL:19360}
+};
+
+function applySizeToSideItems(sizeKey){
+  document.querySelectorAll('.priced-item[data-group="side"]').forEach(item=>{
+    const name = item.querySelector(".pill").textContent;
+    const table = SIDE_SIZE_PRICES[name];
+    if(table && table[sizeKey] !== undefined){
+      item.querySelector(".item-price").value = table[sizeKey];
+    }
+  });
+}
+
+function updatePrice(){
+  const coatingPill = document.querySelector('.pill[data-group="coating"].on');
+  const sizePill = document.querySelector('.pill[data-group="size"].on');
+  const priceBox = document.getElementById("priceBox");
+  const priceNote = document.getElementById("priceNote");
+
+  if(sizePill){
+    applySizeToSideItems(sizePill.textContent.trim());
+  }
+
+  if(!coatingPill || !sizePill){
+    priceBox.style.display = "none";
+    priceNote.style.display = "none";
+    updateTotal();
+    return;
+  }
+
+  const menuKey = coatingPill.dataset.price;
+  const sizeKey = sizePill.textContent.trim();
+  const table = COATING_PRICES[menuKey];
+
+  if(!table || !table[sizeKey]){
+    priceBox.style.display = "none";
+    priceNote.style.display = "block";
+    priceNote.textContent = "「" + coatingPill.textContent + "」のサイズ別価格は未登録のため店舗にご確認ください。";
+    updateTotal();
+    return;
+  }
+
+  priceNote.style.display = "none";
+  priceBox.style.display = "block";
+
+  const base = table[sizeKey];
+  document.getElementById("priceMenuName").textContent = coatingPill.textContent;
+  document.getElementById("priceSizeName").textContent = sizeKey + "サイズ";
+  document.getElementById("priceBase").textContent = yen(base);
+  document.getElementById("price5").textContent = yen(Math.round(base*0.95));
+  document.getElementById("price15").textContent = yen(Math.round(base*0.85));
+  document.getElementById("price20").textContent = yen(Math.round(base*0.80));
+
+  updateTotal();
+}
+
+function getCoatingBase(){
+  const coatingPill = document.querySelector('.pill[data-group="coating"].on');
+  const sizePill = document.querySelector('.pill[data-group="size"].on');
+  if(!coatingPill || !sizePill) return 0;
+  const table = COATING_PRICES[coatingPill.dataset.price];
+  const sizeKey = sizePill.textContent.trim();
+  if(!table || !table[sizeKey]) return 0;
+  return table[sizeKey];
+}
+
+function getAlaCarteTotal(){
+  let total = 0;
+  document.querySelectorAll(".priced-item.on").forEach(item=>{
+    const input = item.querySelector(".item-price");
+    const val = parseInt(input.value, 10);
+    if(!isNaN(val)) total += val;
+  });
+  const interiorPrice = parseInt(document.getElementById("interiorCleanPrice").value, 10);
+  if(!isNaN(interiorPrice)) total += interiorPrice;
+  document.querySelectorAll("#customSingleList .custom-single-item").forEach(row=>{
+    const val = parseInt(row.querySelector(".custom-single-amount").value, 10);
+    if(!isNaN(val)) total += val;
+  });
+  return total;
+}
+
+function updateTotal(){
+  const coatingBase = getCoatingBase();
+  const alaCarteTotal = getAlaCarteTotal();
+  const grandTotal = coatingBase + alaCarteTotal;
+
+  const totalBox = document.getElementById("totalBox");
+  if(grandTotal <= 0){
+    totalBox.style.display = "none";
+    return;
+  }
+  totalBox.style.display = "block";
+  document.getElementById("totalBase").textContent = yen(grandTotal);
+  // discount applies to the coating price only; à la carte items are added at full price
+  document.getElementById("total5").textContent = yen(Math.round(coatingBase*0.95) + alaCarteTotal);
+  document.getElementById("total15").textContent = yen(Math.round(coatingBase*0.85) + alaCarteTotal);
+  document.getElementById("total20").textContent = yen(Math.round(coatingBase*0.80) + alaCarteTotal);
+}
+
+// toggle à la carte priced items on tap, and recalc total on price edits
+document.querySelectorAll(".priced-item").forEach(item=>{
+  const pill = item.querySelector(".pill");
+  const input = item.querySelector(".item-price");
+  pill.addEventListener("click", ()=>{
+    item.classList.toggle("on");
+    updateTotal();
+  });
+  input.addEventListener("input", ()=>{
+    updateTotal();
+  });
+  input.addEventListener("click", (e)=>e.stopPropagation());
+});
+document.getElementById("interiorCleanPrice").addEventListener("input", updateTotal);
+
+// car diagram marking
+const svg = document.getElementById("carSvg");
+const markLayer = document.getElementById("markLayer");
+const markListEl = document.getElementById("markList");
+
+function svgPoint(evt){
+  const pt = svg.createSVGPoint();
+  const touch = evt.touches ? evt.touches[0] : evt;
+  pt.x = touch.clientX; pt.y = touch.clientY;
+  const ctm = svg.getScreenCTM().inverse();
+  return pt.matrixTransform(ctm);
+}
+
+svg.addEventListener("click", (e)=>{
+  if(e.target.closest(".mark")) return; // handled separately
+  const p = svgPoint(e);
+  if(p.x < 30 || p.x > 270 || p.y < 30 || p.y > 430) return;
+  addMark(p.x, p.y);
+});
+
+function addMark(x,y,id){
+  const markId = id || (Date.now()+Math.random());
+  marks.push({id:markId, x, y});
+  renderMarks();
+}
+
+function removeMark(id){
+  marks = marks.filter(m=>m.id!==id);
+  renderMarks();
+}
+
+function renderMarks(){
+  markLayer.innerHTML = "";
+  markListEl.innerHTML = "";
+  marks.forEach((m,i)=>{
+    const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("cx", m.x);
+    c.setAttribute("cy", m.y);
+    c.setAttribute("r", 9);
+    c.setAttribute("fill", "#c8462b");
+    c.setAttribute("stroke", "#fff");
+    c.setAttribute("stroke-width", "2");
+    c.classList.add("mark");
+    c.addEventListener("click", (e)=>{ e.stopPropagation(); removeMark(m.id); });
+    markLayer.appendChild(c);
+
+    const num = document.createElementNS("http://www.w3.org/2000/svg","text");
+    num.setAttribute("x", m.x);
+    num.setAttribute("y", m.y+3.5);
+    num.setAttribute("text-anchor","middle");
+    num.setAttribute("font-size","9");
+    num.setAttribute("fill","#fff");
+    num.setAttribute("font-weight","700");
+    num.textContent = i+1;
+    num.style.pointerEvents = "none";
+    markLayer.appendChild(num);
+
+    const tag = document.createElement("div");
+    tag.className = "mark-tag";
+    tag.textContent = "傷・汚れ箇所 " + (i+1);
+    const del = document.createElement("span");
+    del.textContent = "✕";
+    del.addEventListener("click", ()=>removeMark(m.id));
+    tag.appendChild(del);
+    markListEl.appendChild(tag);
+  });
+}
+
+document.getElementById("clearMarks").addEventListener("click", ()=>{
+  marks = [];
+  renderMarks();
+});
+
+// gather form state
+function getSelected(group){
+  return Array.from(document.querySelectorAll('.pill[data-group="'+group+'"].on')).map(p=>p.textContent);
+}
+function getSingle(group){
+  const el = document.querySelector('.pill[data-group="'+group+'"].on');
+  return el ? el.textContent : "";
+}
+function getPricedItems(group){
+  return Array.from(document.querySelectorAll('.priced-item[data-group="'+group+'"]')).map(item=>{
+    return {
+      name: item.querySelector(".pill").textContent,
+      amount: parseInt(item.querySelector(".item-price").value, 10) || 0,
+      on: item.classList.contains("on")
+    };
+  });
+}
+function setPricedItems(group, saved){
+  if(!saved) return;
+  const items = document.querySelectorAll('.priced-item[data-group="'+group+'"]');
+  items.forEach((item, i)=>{
+    const s = saved.find(x=>x.name === item.querySelector(".pill").textContent) || saved[i];
+    if(!s) return;
+    item.querySelector(".item-price").value = s.amount || "";
+    item.classList.toggle("on", !!s.on);
+  });
+}
+
+function collectOrderForm(){
+  return {
+    kanaSei: document.getElementById("kanaSei").value,
+    kanaMei: document.getElementById("kanaMei").value,
+    nameSei: document.getElementById("nameSei").value,
+    nameMei: document.getElementById("nameMei").value,
+    resDate: document.getElementById("resDate").value,
+    zip: document.getElementById("zip").value,
+    address: document.getElementById("address").value,
+    addressDetail: document.getElementById("addressDetail").value,
+    tel1: document.getElementById("tel1").value,
+    tel2: document.getElementById("tel2").value,
+    tel3: document.getElementById("tel3").value,
+    era: document.getElementById("era").value,
+    birthY: document.getElementById("birthY").value,
+    birthM: document.getElementById("birthM").value,
+    birthD: document.getElementById("birthD").value,
+    carModel: document.getElementById("carModel").value,
+    carNumber: document.getElementById("carNumber").value,
+    size: getSingle("size"),
+    sizeOther: document.getElementById("sizeOther").value,
+    newType: getSelected("new"),
+    existingType: getSelected("existing"),
+    uketsuke: getSingle("uketsuke"),
+    payment: getSingle("payment"),
+    photoConsent: getSingle("photoConsent"),
+    maintCount: document.getElementById("maintCount").value,
+    coating: getSelected("coating"),
+    partialCoating: document.getElementById("partialCoating").value,
+    polish: getPricedItems("polish"),
+    polishOther: document.getElementById("polishOther").value,
+    side: getPricedItems("side"),
+    wash: getPricedItems("wash"),
+    interiorClean: document.getElementById("interiorClean").value,
+    interiorCleanPrice: document.getElementById("interiorCleanPrice").value,
+    single: getPricedItems("single"),
+    customSingle: collectCustomSingleItems(),
+    notes: document.getElementById("notes").value,
+    marks: marks,
+    priceSnapshot: getPriceSnapshot(),
+    totalSnapshot: getTotalSnapshot(),
+    savedAt: new Date().toISOString()
+  };
+}
+
+function getTotalSnapshot(){
+  const coatingBase = getCoatingBase();
+  const alaCarteTotal = getAlaCarteTotal();
+  const grandTotal = coatingBase + alaCarteTotal;
+  if(grandTotal <= 0) return null;
+  return {
+    base: grandTotal,
+    off5: Math.round(coatingBase*0.95) + alaCarteTotal,
+    off15: Math.round(coatingBase*0.85) + alaCarteTotal,
+    off20: Math.round(coatingBase*0.80) + alaCarteTotal
+  };
+}
+
+function getPriceSnapshot(){
+  const coatingPill = document.querySelector('.pill[data-group="coating"].on');
+  const sizePill = document.querySelector('.pill[data-group="size"].on');
+  if(!coatingPill || !sizePill) return null;
+  const menuKey = coatingPill.dataset.price;
+  const sizeKey = sizePill.textContent.trim();
+  const table = COATING_PRICES[menuKey];
+  if(!table || !table[sizeKey]) return null;
+  const base = table[sizeKey];
+  return {
+    menu: coatingPill.textContent,
+    size: sizeKey,
+    base: base,
+    off5: Math.round(base*0.95),
+    off15: Math.round(base*0.85),
+    off20: Math.round(base*0.80)
+  };
+}
+
+function applyOrderForm(data){
+  document.getElementById("kanaSei").value = data.kanaSei || data.kana || "";
+  document.getElementById("kanaMei").value = data.kanaMei || "";
+  document.getElementById("nameSei").value = data.nameSei || data.name || "";
+  document.getElementById("nameMei").value = data.nameMei || "";
+  document.getElementById("resDate").value = data.resDate||"";
+  document.getElementById("zip").value = data.zip||"";
+  document.getElementById("address").value = data.address||"";
+  document.getElementById("addressDetail").value = data.addressDetail||"";
+  if(data.tel1 || data.tel2 || data.tel3){
+    document.getElementById("tel1").value = data.tel1||"";
+    document.getElementById("tel2").value = data.tel2||"";
+    document.getElementById("tel3").value = data.tel3||"";
+  } else if(data.tel){
+    const parts = data.tel.split("-");
+    document.getElementById("tel1").value = parts[0]||"";
+    document.getElementById("tel2").value = parts[1]||"";
+    document.getElementById("tel3").value = parts[2]||"";
+  } else {
+    document.getElementById("tel1").value = "";
+    document.getElementById("tel2").value = "";
+    document.getElementById("tel3").value = "";
+  }
+  document.getElementById("era").value = data.era||"S";
+  document.getElementById("birthY").value = data.birthY||"";
+  document.getElementById("birthM").value = data.birthM||"";
+  document.getElementById("birthD").value = data.birthD||"";
+  document.getElementById("carModel").value = data.carModel||"";
+  document.getElementById("carNumber").value = data.carNumber||"";
+  document.getElementById("sizeOther").value = data.sizeOther||"";
+  document.getElementById("maintCount").value = data.maintCount || "1";
+  document.getElementById("partialCoating").value = data.partialCoating||"";
+  document.getElementById("polishOther").value = data.polishOther||"";
+  document.getElementById("interiorClean").value = data.interiorClean||"";
+  document.getElementById("interiorCleanPrice").value = data.interiorCleanPrice||"";
+  document.getElementById("notes").value = data.notes||"";
+
+  document.querySelectorAll(".pill[data-group]").forEach(p=>p.classList.remove("on"));
+  document.querySelectorAll(".priced-item").forEach(item=>item.classList.remove("on"));
+  const setOn = (group, values)=>{
+    if(!values) return;
+    const arr = Array.isArray(values)? values : [values];
+    arr.forEach(v=>{
+      document.querySelectorAll('.pill[data-group="'+group+'"]').forEach(p=>{
+        if(p.textContent === v) p.classList.add("on");
+      });
+    });
+  };
+  setOn("size", data.size);
+  setOn("new", data.newType);
+  setOn("existing", data.existingType);
+  setOn("uketsuke", data.uketsuke);
+  setOn("payment", data.payment);
+  setOn("photoConsent", data.photoConsent);
+  setOn("coating", data.coating);
+  setPricedItems("polish", data.polish);
+  setPricedItems("side", data.side);
+  setPricedItems("wash", data.wash);
+  setPricedItems("single", data.single);
+  document.getElementById("customSingleList").innerHTML = "";
+  (data.customSingle || []).forEach(item=>{
+    addCustomSingleRow(item.label, item.amount);
+  });
+
+  marks = data.marks || [];
+  renderMarks();
+  updatePrice();
+}
+
+function resetOrderForm(){
+  document.querySelectorAll("input[type=text], input[type=tel], input[type=number], textarea").forEach(el=>el.value="");
+  document.getElementById("resDate").value = "";
+  document.getElementById("era").value = "S";
+  document.getElementById("carMaker").value = "";
+  document.getElementById("carModelSelect").innerHTML = '<option value="">車種選択</option>';
+  document.getElementById("plateArea").value = "";
+  document.getElementById("customSingleList").innerHTML = "";
+  document.getElementById("maintCount").value = "1";
+  document.querySelectorAll(".pill[data-group]").forEach(p=>p.classList.remove("on"));
+  document.querySelectorAll(".priced-item").forEach(item=>item.classList.remove("on"));
+  // restore default reference prices after clearing (side menu items keep their official defaults)
+  document.querySelectorAll(".priced-item").forEach(item=>{
+    const original = item.dataset.amount;
+    const input = item.querySelector(".item-price");
+    if(original && parseInt(original,10) > 0) input.value = original;
+  });
+  marks = [];
+  renderMarks();
+  updatePrice();
+}
+
+function showToast(msg, duration){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), duration || 1800);
+}
+
+
+// ---- checkbox toggling for the 7 confirmation items ----
+function updateProgress(){
+  const total = document.querySelectorAll(".item").length;
+  const checked = document.querySelectorAll(".item .checkbox.checked").length;
+  document.getElementById("progressNote").textContent = checked + " / " + total + " 項目にチェック";
+}
+document.querySelectorAll(".item").forEach(item=>{
+  item.addEventListener("click", ()=>{
+    item.querySelector(".checkbox").classList.toggle("checked");
+    updateProgress();
+  });
+});
+
+// ---- photo capture (license / insurance) ----
+const photoData = { license: "", insurance: "" };
+
+function setupPhotoItem(key, fileInputId, previewId){
+  const fileInput = document.getElementById(fileInputId);
+  const preview = document.getElementById(previewId);
+  const item = document.querySelector('.photo-item[data-photo="'+key+'"]');
+  const checkbox = item.querySelector(".checkbox");
+
+  fileInput.addEventListener("change", (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      photoData[key] = reader.result;
+      preview.src = reader.result;
+      preview.style.display = "block";
+      checkbox.classList.add("checked");
+    };
+    reader.readAsDataURL(file);
+  });
+
+  checkbox.addEventListener("click", ()=>{
+    checkbox.classList.toggle("checked");
+  });
+}
+setupPhotoItem("license", "licenseFile", "licensePreview");
+setupPhotoItem("insurance", "insuranceFile", "insurancePreview");
+
+function dataURLtoBlob(dataURL){
+  const [meta, base64] = dataURL.split(",");
+  const mime = meta.match(/:(.*?);/)[1];
+  const bin = atob(base64);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], {type: mime});
+}
+
+// ---- purpose pill (single select) ----
+document.querySelectorAll('.pill[data-group="purpose"]').forEach(p=>{
+  p.addEventListener("click", ()=>{
+    document.querySelectorAll('.pill[data-group="purpose"]').forEach(o=>o.classList.remove("on"));
+    p.classList.add("on");
+  });
+});
+
+// ---- signature pad ----
+const canvas = document.getElementById("sigCanvas");
+const ctx = canvas.getContext("2d");
+let drawing = false;
+let hasSignature = false;
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+  const prevData = hasSignature ? canvas.toDataURL() : null;
+  canvas.width = rect.width * ratio;
+  canvas.height = rect.height * ratio;
+  ctx.scale(ratio, ratio);
+  ctx.lineWidth = 2.4;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#16324f";
+  if(prevData){
+    const img = new Image();
+    img.onload = ()=> ctx.drawImage(img, 0, 0, rect.width, rect.height);
+    img.src = prevData;
+  }
+}
+window.addEventListener("resize", resizeCanvas);
+setTimeout(resizeCanvas, 50);
+
+function getPos(e){
+  const rect = canvas.getBoundingClientRect();
+  const t = e.touches ? e.touches[0] : e;
+  return {x: t.clientX - rect.left, y: t.clientY - rect.top};
+}
+function startDraw(e){
+  e.preventDefault();
+  drawing = true;
+  hasSignature = true;
+  const p = getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y);
+}
+function moveDraw(e){
+  if(!drawing) return;
+  e.preventDefault();
+  const p = getPos(e);
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+}
+function endDraw(e){ drawing = false; }
+
+canvas.addEventListener("mousedown", startDraw);
+canvas.addEventListener("mousemove", moveDraw);
+canvas.addEventListener("mouseup", endDraw);
+canvas.addEventListener("mouseleave", endDraw);
+canvas.addEventListener("touchstart", startDraw, {passive:false});
+canvas.addEventListener("touchmove", moveDraw, {passive:false});
+canvas.addEventListener("touchend", endDraw);
+
+document.getElementById("clearSig").addEventListener("click", ()=>{
+  const rect = canvas.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  hasSignature = false;
+});
+
+// ---- collect / apply / reset ----
+function collectDaishaForm(){
+  const checkedItems = Array.from(document.querySelectorAll(".item")).map(item=>{
+    return item.querySelector(".checkbox").classList.contains("checked");
+  });
+  return {
+    checkedItems: checkedItems,
+    purpose: (document.querySelector('.pill[data-group="purpose"].on')||{}).textContent || "",
+    startDate: document.getElementById("startDate").value,
+    startTime: document.getElementById("startTime").value,
+    endDate: document.getElementById("endDate").value,
+    endTime: document.getElementById("endTime").value,
+    customerName: document.getElementById("customerName").value,
+    signDate: document.getElementById("signDate").value,
+    signatureImage: hasSignature ? canvas.toDataURL("image/png") : "",
+    licensePhoto: photoData.license,
+    licenseChecked: document.querySelector('.photo-item[data-photo="license"] .checkbox').classList.contains("checked"),
+    insurancePhoto: photoData.insurance,
+    insuranceChecked: document.querySelector('.photo-item[data-photo="insurance"] .checkbox').classList.contains("checked"),
+    savedAt: new Date().toISOString()
+  };
+}
+
+function applyDaishaForm(data){
+  document.querySelectorAll(".item").forEach((item, i)=>{
+    item.querySelector(".checkbox").classList.toggle("checked", !!(data.checkedItems && data.checkedItems[i]));
+  });
+  updateProgress();
+  document.querySelectorAll('.pill[data-group="purpose"]').forEach(p=>{
+    p.classList.toggle("on", p.textContent === data.purpose);
+  });
+  document.getElementById("startDate").value = data.startDate || "";
+  document.getElementById("startTime").value = data.startTime || "";
+  document.getElementById("endDate").value = data.endDate || "";
+  document.getElementById("endTime").value = data.endTime || "";
+  document.getElementById("customerName").value = data.customerName || "";
+  document.getElementById("signDate").value = data.signDate || "";
+
+  photoData.license = data.licensePhoto || "";
+  photoData.insurance = data.insurancePhoto || "";
+  const licensePreview = document.getElementById("licensePreview");
+  const insurancePreview = document.getElementById("insurancePreview");
+  if(photoData.license){ licensePreview.src = photoData.license; licensePreview.style.display = "block"; }
+  else { licensePreview.style.display = "none"; }
+  if(photoData.insurance){ insurancePreview.src = photoData.insurance; insurancePreview.style.display = "block"; }
+  else { insurancePreview.style.display = "none"; }
+  document.querySelector('.photo-item[data-photo="license"] .checkbox').classList.toggle("checked", !!data.licenseChecked);
+  document.querySelector('.photo-item[data-photo="insurance"] .checkbox').classList.toggle("checked", !!data.insuranceChecked);
+
+  const rect = canvas.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  hasSignature = false;
+  if(data.signatureImage){
+    const img = new Image();
+    img.onload = ()=>{ ctx.drawImage(img, 0, 0, rect.width, rect.height); hasSignature = true; };
+    img.src = data.signatureImage;
+  }
+}
+
+function resetDaishaForm(){
+  document.querySelectorAll(".item .checkbox").forEach(c=>c.classList.remove("checked"));
+  updateProgress();
+  document.querySelectorAll("input[type=text], input[type=date], input[type=time], input[type=number]").forEach(el=>el.value="");
+  document.querySelectorAll('.pill[data-group="purpose"]').forEach(p=>p.classList.remove("on"));
+
+  photoData.license = "";
+  photoData.insurance = "";
+  document.getElementById("licensePreview").style.display = "none";
+  document.getElementById("insurancePreview").style.display = "none";
+  document.querySelectorAll(".photo-item .checkbox").forEach(c=>c.classList.remove("checked"));
+  document.getElementById("licenseFile").value = "";
+  document.getElementById("insuranceFile").value = "";
+
+  const rect = canvas.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  hasSignature = false;
+}
+
+
+// ---- daisha (代車) enable toggle ----
+document.getElementById("daishaToggle").addEventListener("click", ()=>{
+  const toggle = document.getElementById("daishaToggle");
+  const nextOn = toggle.dataset.on !== "true";
+  toggle.dataset.on = String(nextOn);
+  toggle.textContent = nextOn ? "オン" : "オフ";
+  toggle.classList.toggle("on", nextOn);
+  document.getElementById("daishaContent").style.display = nextOn ? "block" : "none";
+});
+
+// ---- tab switching ----
+function switchToTab(name){
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.toggle("active", p.id==="tab-"+name));
+}
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>switchToTab(btn.dataset.tab));
+});
+
+// ---- unified new / save / list ----
+document.getElementById("newBtn").addEventListener("click", ()=>{
+  resetOrderForm();
+  resetDaishaForm();
+  const toggle = document.getElementById("daishaToggle");
+  toggle.dataset.on = "false";
+  toggle.textContent = "オフ";
+  toggle.classList.remove("on");
+  document.getElementById("daishaContent").style.display = "none";
+  showToast("新しい記録を開始しました");
+});
+
+document.getElementById("saveBtn").addEventListener("click", async ()=>{
+  const orderData = collectOrderForm();
+  if(!orderData.nameSei && !orderData.carModel){
+    showToast("お名前か車種を入力してください");
+    switchToTab("order");
+    return;
+  }
+
+  const daishaOn = document.getElementById("daishaToggle").dataset.on === "true";
+  let daishaData = null;
+  if(daishaOn){
+    daishaData = collectDaishaForm();
+    const checkedCount = daishaData.checkedItems.filter(Boolean).length;
+    if(!daishaData.customerName){
+      showToast("代車借用書：お客様のお名前を入力してください");
+      switchToTab("daisha");
+      return;
+    }
+    if(!hasSignature){
+      showToast("代車借用書：署名を入力してください");
+      switchToTab("daisha");
+      return;
+    }
+    if(checkedCount < 7){
+      showToast("代車借用書：" + (7-checkedCount) + "件、未チェックの項目があります");
+      switchToTab("daisha");
+      return;
+    }
+  }
+
+  const combined = {
+    order: orderData,
+    daisha: daishaData,
+    savedAt: new Date().toISOString()
+  };
+  const key = RECORD_PREFIX + Date.now();
+  try{
+    const result = await Store.set(key, JSON.stringify(combined), true);
+    if(result){ showToast("保存しました"); }
+    else{ showToast("保存に失敗しました"); }
+  }catch(err){
+    console.error(err);
+    showToast("保存エラーが発生しました");
+  }
+});
+
+// ---- unified saved-records list ----
+const modalBg = document.getElementById("modalBg");
+document.getElementById("listBtn").addEventListener("click", async ()=>{
+  modalBg.classList.add("show");
+  const entryList = document.getElementById("entryList");
+  entryList.innerHTML = '<div class="empty">読み込み中...</div>';
+  try{
+    const listResult = await Store.list(RECORD_PREFIX, true);
+    const keys = (listResult && listResult.keys) ? listResult.keys : [];
+    if(keys.length===0){
+      entryList.innerHTML = '<div class="empty">保存された記録はありません</div>';
+      return;
+    }
+    keys.sort().reverse();
+    entryList.innerHTML = "";
+    for(const k of keys){
+      try{
+        const r = await Store.get(k, true);
+        if(!r) continue;
+        const combined = JSON.parse(r.value);
+        const d = combined.order || {};
+        const dd = combined.daisha;
+        const div = document.createElement("div");
+        div.className = "entry";
+        const dt = combined.savedAt ? new Date(combined.savedAt).toLocaleString("ja-JP") : "";
+        const priceLine = d.totalSnapshot
+          ? `<br><span style="color:var(--accent); font-weight:700;">合計 ¥${d.totalSnapshot.base.toLocaleString("ja-JP")}</span>`
+          : (d.priceSnapshot
+            ? `<br><span style="color:var(--accent); font-weight:700;">${d.priceSnapshot.menu} ${d.priceSnapshot.size} ¥${d.priceSnapshot.base.toLocaleString("ja-JP")}</span>`
+            : "");
+        const daishaBadge = dd ? ' <span style="color:var(--navy); font-weight:700;">・代車あり</span>' : "";
+        const displayName = (d.nameSei || d.nameMei) ? ((d.nameSei||"") + (d.nameMei ? " " + d.nameMei : "")) : (d.name || "(お名前未入力)");
+        div.innerHTML = `<div class="info"><b>${displayName}</b>${daishaBadge}<br>
+          ${d.carModel || ""} ${d.carNumber || ""}${priceLine}<br>
+          <span style="color:#999;">${dt}</span></div>`;
+        const loadBtn = document.createElement("button");
+        loadBtn.textContent = "開く";
+        loadBtn.addEventListener("click", ()=>{
+          applyOrderForm(d);
+          const toggle = document.getElementById("daishaToggle");
+          if(dd){
+            applyDaishaForm(dd);
+            toggle.dataset.on = "true";
+            toggle.textContent = "オン";
+            toggle.classList.add("on");
+            document.getElementById("daishaContent").style.display = "block";
+          } else {
+            resetDaishaForm();
+            toggle.dataset.on = "false";
+            toggle.textContent = "オフ";
+            toggle.classList.remove("on");
+            document.getElementById("daishaContent").style.display = "none";
+          }
+          modalBg.classList.remove("show");
+          showToast("記録を読み込みました");
+        });
+        div.appendChild(loadBtn);
+        entryList.appendChild(div);
+      }catch(e){ console.error(e); }
+    }
+  }catch(err){
+    console.error(err);
+    entryList.innerHTML = '<div class="empty">読み込みエラーが発生しました</div>';
+  }
+});
+document.getElementById("closeModal").addEventListener("click", ()=>{
+  modalBg.classList.remove("show");
+});
+modalBg.addEventListener("click", (e)=>{
+  if(e.target===modalBg) modalBg.classList.remove("show");
+});
+
+updateProgress();
+
+(function initStorageNote(){
+  const note = document.getElementById("storageModeNote");
+  if(Store.hasBridge()){
+    note.textContent = "";
+  } else {
+    note.textContent = "※このiPad（このSafari）に記録を保存します。他の端末とは共有されません。";
+  }
+})();
+
+// ================= Googleドライブ 自動アップロード連携 =================
+const GOOGLE_SETTINGS_KEY = "settings:google";
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+let googleTokenClient = null;
+let googleAccessToken = null;
+let googleSettings = { clientId: "", folderId: "" };
+
+async function loadGoogleSettings(){
+  try{
+    const r = await Store.get(GOOGLE_SETTINGS_KEY, false);
+    if(r) googleSettings = JSON.parse(r.value);
+  }catch(e){ /* not saved yet */ }
+  document.getElementById("googleClientId").value = googleSettings.clientId || "";
+  document.getElementById("googleFolderId").value = googleSettings.folderId || "";
+  refreshGoogleUI();
+}
+
+function refreshGoogleUI(){
+  const loginBtn = document.getElementById("googleLoginBtn");
+  const status = document.getElementById("googleLoginStatus");
+  const uploadStatus = document.getElementById("autoUploadStatus");
+  if(!googleSettings.clientId){
+    loginBtn.disabled = true;
+    loginBtn.textContent = "クライアントIDを保存するとログインできます";
+    status.textContent = "";
+    uploadStatus.textContent = "未設定です。ヘッダーの「Google設定」からGoogleアカウントと連携してください。";
+    return;
+  }
+  loginBtn.disabled = false;
+  if(googleAccessToken){
+    loginBtn.textContent = "ログイン済み（再ログイン）";
+    status.textContent = "Googleアカウントと連携済みです。";
+    uploadStatus.textContent = "連携済みです。「Googleドライブへ自動アップロード」でアップロードできます。";
+  } else {
+    loginBtn.textContent = "Googleでログイン";
+    status.textContent = "まだログインしていません。";
+    uploadStatus.textContent = "Google設定でログインすると自動アップロードが使えます。";
+  }
+}
+
+function initGoogleTokenClient(){
+  if(!window.google || !google.accounts || !googleSettings.clientId) return;
+  googleTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: googleSettings.clientId,
+    scope: DRIVE_SCOPE,
+    callback: (resp)=>{
+      if(resp && resp.access_token){
+        googleAccessToken = resp.access_token;
+        refreshGoogleUI();
+        showToast("Googleにログインしました");
+      } else {
+        showToast("Googleログインに失敗しました");
+      }
+    }
+  });
+}
+
+document.getElementById("settingsBtn").addEventListener("click", async ()=>{
+  await loadGoogleSettings();
+  document.getElementById("settingsModalBg").classList.add("show");
+});
+document.getElementById("closeSettingsModal").addEventListener("click", ()=>{
+  document.getElementById("settingsModalBg").classList.remove("show");
+});
+document.getElementById("settingsModalBg").addEventListener("click", (e)=>{
+  if(e.target.id === "settingsModalBg") document.getElementById("settingsModalBg").classList.remove("show");
+});
+
+document.getElementById("saveGoogleSettings").addEventListener("click", async ()=>{
+  googleSettings = {
+    clientId: document.getElementById("googleClientId").value.trim(),
+    folderId: document.getElementById("googleFolderId").value.trim()
+  };
+  try{
+    await Store.set(GOOGLE_SETTINGS_KEY, JSON.stringify(googleSettings), false);
+    showToast("Google設定を保存しました");
+  }catch(e){
+    console.error(e);
+    showToast("設定の保存に失敗しました");
+  }
+  googleAccessToken = null;
+  initGoogleTokenClient();
+  refreshGoogleUI();
+});
+
+document.getElementById("googleLoginBtn").addEventListener("click", ()=>{
+  if(!googleTokenClient) initGoogleTokenClient();
+  if(!googleTokenClient){
+    showToast("Googleログインの準備ができていません。少し待って再度お試しください。");
+    return;
+  }
+  googleTokenClient.requestAccessToken({prompt: googleAccessToken ? "" : "consent"});
+});
+
+async function findOrCreateFolder(name, parentId){
+  const parent = parentId || "root";
+  const query = `name='${name.replace(/'/g,"\\'")}' and mimeType='application/vnd.google-apps.folder' and '${parent}' in parents and trashed=false`;
+  const searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=" + encodeURIComponent(query) + "&fields=files(id,name)", {
+    headers: { "Authorization": "Bearer " + googleAccessToken }
+  });
+  if(!searchRes.ok){
+    const text = await searchRes.text();
+    throw new Error("Drive folder search failed: " + searchRes.status + " " + text);
+  }
+  const searchData = await searchRes.json();
+  if(searchData.files && searchData.files.length > 0){
+    return searchData.files[0].id;
+  }
+  const createRes = await fetch("https://www.googleapis.com/drive/v3/files", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + googleAccessToken,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      name: name,
+      mimeType: "application/vnd.google-apps.folder",
+      parents: [parent]
+    })
+  });
+  if(!createRes.ok){
+    const text = await createRes.text();
+    throw new Error("Drive folder create failed: " + createRes.status + " " + text);
+  }
+  const createData = await createRes.json();
+  return createData.id;
+}
+
+async function uploadFileToDrive(file, parentFolderId){
+  const metadata = { name: file.name };
+  const parent = parentFolderId || googleSettings.folderId;
+  if(parent) metadata.parents = [parent];
+
+  const form = new FormData();
+  form.append("metadata", new Blob([JSON.stringify(metadata)], {type: "application/json"}));
+  form.append("file", file);
+
+  const res = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + googleAccessToken },
+    body: form
+  });
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error("Drive upload failed: " + res.status + " " + text);
+  }
+  return res.json();
+}
+
+document.getElementById("autoUploadBtn").addEventListener("click", async ()=>{
+  if(!googleSettings.clientId){
+    showToast("先にヘッダーの「Google設定」からクライアントIDを設定してください");
+    return;
+  }
+  if(!googleAccessToken){
+    showToast("先にヘッダーの「Google設定」からGoogleにログインしてください");
+    return;
+  }
+
+  const stamp = new Date().toISOString().slice(0,10);
+  const orderData = collectOrderForm();
+  const daishaOn = document.getElementById("daishaToggle").dataset.on === "true";
+  const filesToUpload = [];
+
+  if(hasSignature){
+    filesToUpload.push(new File([dataURLtoBlob(canvas.toDataURL("image/png"))], "署名_"+stamp+".png", {type:"image/png"}));
+  }
+  if(photoData.license){
+    filesToUpload.push(new File([dataURLtoBlob(photoData.license)], "運転免許証_"+stamp+".jpg", {type:"image/jpeg"}));
+  }
+  if(photoData.insurance){
+    filesToUpload.push(new File([dataURLtoBlob(photoData.insurance)], "任意保険証券_"+stamp+".jpg", {type:"image/jpeg"}));
+  }
+
+  const summaryLines = [
+    "サンアイク 業務ツール 記録",
+    "保存日時: " + new Date().toLocaleString("ja-JP"),
+    "",
+    "【オーダーチェックシート】",
+    "お客様名: " + ((orderData.nameSei||"") + (orderData.nameMei ? " " + orderData.nameMei : "")),
+    "車種: " + (orderData.carModel || ""),
+    "ナンバー: " + (orderData.carNumber || ""),
+    "コーティング: " + (orderData.coating.join(",") || ""),
+  ];
+  if(orderData.totalSnapshot){
+    summaryLines.push("合計金額: ¥" + orderData.totalSnapshot.base.toLocaleString("ja-JP"));
+  }
+  if(daishaOn){
+    const daishaData = collectDaishaForm();
+    summaryLines.push("", "【代車借用書】");
+    summaryLines.push("借受人: " + (daishaData.customerName || ""));
+    summaryLines.push("使用目的: " + (daishaData.purpose || ""));
+    summaryLines.push("借用期間: " + (daishaData.startDate||"") + " " + (daishaData.startTime||"") + " 〜 " + (daishaData.endDate||"") + " " + (daishaData.endTime||""));
+  }
+  const summaryBlob = new Blob([summaryLines.join("\n")], {type: "text/plain"});
+  filesToUpload.push(new File([summaryBlob], "記録サマリー_"+stamp+".txt", {type:"text/plain"}));
+
+  if(filesToUpload.length === 0){
+    showToast("アップロードできる内容がありません");
+    return;
+  }
+
+  showToast("フォルダを準備中...");
+  let targetFolderId;
+  try{
+    const today = new Date();
+    const monthFolderName = today.getFullYear() + "年" + String(today.getMonth()+1).padStart(2,"0") + "月";
+    const customerName = ((orderData.nameSei||"") + (orderData.nameMei ? orderData.nameMei : "")) || "お名前未入力";
+
+    const monthFolderId = await findOrCreateFolder(monthFolderName, googleSettings.folderId || "root");
+    targetFolderId = await findOrCreateFolder(customerName, monthFolderId);
+  }catch(err){
+    console.error(err);
+    showToast("フォルダの作成に失敗: " + (err.message || err), 8000);
+    return;
+  }
+
+  showToast("アップロード中...");
+  try{
+    for(const f of filesToUpload){
+      await uploadFileToDrive(f, targetFolderId);
+    }
+    showToast("Googleドライブへのアップロードが完了しました");
+  }catch(err){
+    console.error(err);
+    showToast("アップロードに失敗: " + (err.message || err), 8000);
+  }
+});
+
+loadGoogleSettings().then(initGoogleTokenClient);
+
+// ================= 郵便番号 → 住所 自動入力 =================
+const CAR_DATA = {
+  "トヨタ": ["アクア","プリウス","カローラ","カローラクロス","カローラツーリング","ヤリス","ヤリスクロス","ルーミー","タンク","シエンタ","ヴォクシー","ノア","アルファード","ヴェルファイア","ハリアー","ライズ","RAV4","カムリ","クラウン","パッソ","ランドクルーザー","ハイエース","ピクシス"],
+  "ホンダ": ["フィット","ヴェゼル","フリード","N-BOX","N-WGN","N-ONE","ステップワゴン","オデッセイ","シビック","アコード","CR-V","ジェイド"],
+  "日産": ["ノート","セレナ","エクストレイル","デイズ","ルークス","キックス","マーチ","ジューク","スカイライン","フーガ","リーフ"],
+  "スズキ": ["ワゴンR","スペーシア","ハスラー","アルト","スイフト","ソリオ","ジムニー","エブリイ","クロスビー","エスクード"],
+  "ダイハツ": ["タント","ムーヴ","ミライース","ウェイク","タフト","ロッキー","キャスト","トール","コペン"],
+  "マツダ": ["デミオ","MAZDA2","MAZDA3","CX-3","CX-5","CX-8","CX-30","ロードスター","アテンザ","MAZDA6"],
+  "スバル": ["インプレッサ","フォレスター","レガシィ","XV","レヴォーグ","サンバー","ステラ"],
+  "三菱": ["デリカD:5","アウトランダー","エクリプスクロス","eKワゴン","eKクロス","ekスペース","RVR"],
+  "レクサス": ["NX","RX","UX","IS","ES","LS","LX","RC"],
+  "その他": []
+};
+
+const PLATE_AREAS = [
+  "札幌","函館","室蘭","旭川","釧路","帯広","北見","苫小牧",
+  "青森","弘前","岩手","盛岡","宮城","仙台","秋田","山形","庄内","福島","会津","いわき",
+  "水戸","土浦","つくば","栃木","宇都宮","那須","群馬","前橋","高崎",
+  "大宮","川越","熊谷","所沢","春日部","千葉","習志野","袖ヶ浦","野田","成田","柏",
+  "品川","世田谷","練馬","杉並","足立","江東","八王子","多摩",
+  "横浜","川崎","相模","湘南",
+  "新潟","長岡","山梨","富士山","諏訪","松本","長野",
+  "富山","石川","金沢","福井",
+  "静岡","沼津","浜松","岐阜","飛騨",
+  "名古屋","三河","尾張小牧","春日井",
+  "伊勢志摩","鈴鹿","四日市",
+  "滋賀","京都","大阪","なにわ","和泉","堺","神戸","姫路",
+  "奈良","和歌山",
+  "鳥取","島根","出雲","岡山","倉敷","広島","福山","山口","下関",
+  "徳島","香川","高知","愛媛",
+  "福岡","北九州","久留米","筑豊","佐賀","長崎","佐世保","熊本","大分","宮崎","鹿児島","奄美",
+  "沖縄"
+];
+
+(function initPlateAreaSelect(){
+  const areaSelect = document.getElementById("plateArea");
+  PLATE_AREAS.forEach(area=>{
+    const opt = document.createElement("option");
+    opt.value = area;
+    opt.textContent = area;
+    areaSelect.appendChild(opt);
+  });
+  const otherOpt = document.createElement("option");
+  otherOpt.value = "__other__";
+  otherOpt.textContent = "その他（手入力）";
+  areaSelect.appendChild(otherOpt);
+
+  const plateClass = document.getElementById("plateClass");
+  const plateHiragana = document.getElementById("plateHiragana");
+  const plateNum1 = document.getElementById("plateNum1");
+  const plateNum2 = document.getElementById("plateNum2");
+  const carNumberInput = document.getElementById("carNumber");
+
+  // ナンバープレートで実際に使われるひらがな（用途区分別）
+  const HIRAGANA_GROUPS = [
+    { label: "自家用", chars: ["さ","す","せ","そ","た","ち","つ","て","と","な","に","ぬ","ね","の","は","ひ","ふ","ほ","ま","み","む","め","も","や","ゆ","ら","り","る","ろ"] },
+    { label: "事業用", chars: ["あ","い","う","え","か","き","く","け","こ","を"] },
+    { label: "貸渡用（レンタカー）", chars: ["わ","れ"] },
+    { label: "駐留軍人用", chars: ["よ"] }
+  ];
+  HIRAGANA_GROUPS.forEach(group=>{
+    const optgroup = document.createElement("optgroup");
+    optgroup.label = group.label;
+    group.chars.forEach(ch=>{
+      const opt = document.createElement("option");
+      opt.value = ch;
+      opt.textContent = ch;
+      optgroup.appendChild(opt);
+    });
+    plateHiragana.appendChild(optgroup);
+  });
+
+  function assemblePlate(){
+    if(areaSelect.value === "__other__") return;
+    const area = areaSelect.value || "";
+    const cls = plateClass.value || "";
+    const kana = plateHiragana.value || "";
+    const num = (plateNum1.value || "") + (plateNum2.value ? "-" + plateNum2.value : "");
+    const parts = [area, cls, kana, num].filter(v=>v);
+    carNumberInput.value = parts.join(" ");
+  }
+
+  areaSelect.addEventListener("change", ()=>{
+    if(areaSelect.value === "__other__"){
+      carNumberInput.value = "";
+      carNumberInput.focus();
+      return;
+    }
+    assemblePlate();
+    plateClass.focus();
+  });
+  plateClass.addEventListener("input", ()=>{
+    assemblePlate();
+    if(plateClass.value.length >= 3) plateHiragana.focus();
+  });
+  plateHiragana.addEventListener("change", ()=>{
+    assemblePlate();
+    plateNum1.focus();
+  });
+  plateNum1.addEventListener("input", ()=>{
+    assemblePlate();
+    if(plateNum1.value.length >= 2) plateNum2.focus();
+  });
+  plateNum2.addEventListener("input", assemblePlate);
+})();
+
+// KeePer公式サイズ表（keepergiken.co.jp/business/download/size）を参考にした目安。
+// 実際のサイズは年式・グレードにより異なる場合があるため、あくまで初期選択の参考値。
+const CAR_SIZE_MAP = {
+  "アクア":"S","プリウス":"M","カローラ":"M","カローラクロス":"L","カローラツーリング":"M",
+  "ヤリス":"S","ヤリスクロス":"S","ルーミー":"S","タンク":"S","シエンタ":"M",
+  "ヴォクシー":"L","ノア":"L","アルファード":"LL","ヴェルファイア":"LL","ハリアー":"LL",
+  "ライズ":"S","RAV4":"L","カムリ":"L","クラウン":"L","パッソ":"S","ランドクルーザー":"XL","ハイエース":"LL","ピクシス":"SS",
+  "フィット":"S","ヴェゼル":"L","フリード":"S","N-BOX":"S","N-WGN":"SS","N-ONE":"SS",
+  "ステップワゴン":"LL","オデッセイ":"L","シビック":"M","アコード":"L","CR-V":"L","ジェイド":"M",
+  "ノート":"S","セレナ":"LL","エクストレイル":"L","デイズ":"SS","ルークス":"SS","キックス":"M","マーチ":"S","ジューク":"S","スカイライン":"L","フーガ":"L","リーフ":"M",
+  "ワゴンR":"SS","スペーシア":"SS","ハスラー":"SS","アルト":"SS","スイフト":"S","ソリオ":"S","ジムニー":"SS","エブリイ":"SS","クロスビー":"S","エスクード":"M",
+  "タント":"SS","ムーヴ":"SS","ミライース":"SS","ウェイク":"SS","タフト":"SS","ロッキー":"S","キャスト":"SS","トール":"S","コペン":"SS",
+  "デミオ":"S","MAZDA2":"S","MAZDA3":"M","CX-3":"S","CX-5":"L","CX-8":"LL","CX-30":"M","ロードスター":"S","アテンザ":"L","MAZDA6":"L",
+  "インプレッサ":"M","フォレスター":"L","レガシィ":"L","XV":"M","レヴォーグ":"L","サンバー":"SS","ステラ":"SS",
+  "デリカD:5":"LL","アウトランダー":"L","エクリプスクロス":"M","eKワゴン":"SS","eKクロス":"SS","ekスペース":"SS","RVR":"M",
+  "NX":"L","RX":"LL","UX":"S","IS":"M","ES":"L","LS":"LL","LX":"XL","RC":"M"
+};
+
+document.getElementById("quotePdfBtn").addEventListener("click", ()=>{
+  const orderData = collectOrderForm();
+  const coatingPill = document.querySelector('.pill[data-group="coating"].on');
+  const sizePill = document.querySelector('.pill[data-group="size"].on');
+
+  if(!coatingPill || !sizePill){
+    showToast("コーティングメニューとサイズを選択してください");
+    return;
+  }
+
+  const menuKey = coatingPill.dataset.price;
+  const sizeKey = sizePill.textContent.trim();
+  const table = COATING_PRICES[menuKey];
+  const coatingBase = (table && table[sizeKey]) ? table[sizeKey] : 0;
+
+  const rows = [];
+  if(coatingBase > 0){
+    rows.push({ label: menuKey + "（" + sizeKey + "サイズ）", amount: coatingBase });
+  }
+  document.querySelectorAll(".priced-item.on").forEach(item=>{
+    const label = item.querySelector(".pill").textContent.trim();
+    const input = item.querySelector(".item-price");
+    const val = parseInt(input.value, 10);
+    if(!isNaN(val) && val > 0){
+      rows.push({ label: label, amount: val });
+    }
+  });
+  const interiorPrice = parseInt(document.getElementById("interiorCleanPrice").value, 10);
+  if(!isNaN(interiorPrice) && interiorPrice > 0){
+    rows.push({ label: "室内クリーニング", amount: interiorPrice });
+  }
+  document.querySelectorAll("#customSingleList .custom-single-item").forEach(row=>{
+    const label = row.querySelector(".custom-single-label").value.trim();
+    const val = parseInt(row.querySelector(".custom-single-amount").value, 10);
+    if(!isNaN(val) && val > 0){
+      rows.push({ label: label || "単品作業", amount: val });
+    }
+  });
+
+  const alaCarteTotal = rows.reduce((sum,r)=>sum + r.amount, 0) - coatingBase;
+  const grandTotal = coatingBase + alaCarteTotal;
+  const total5 = Math.round(coatingBase*0.95) + alaCarteTotal;
+  const total15 = Math.round(coatingBase*0.85) + alaCarteTotal;
+  const total20 = Math.round(coatingBase*0.80) + alaCarteTotal;
+
+  const customerName = ((orderData.nameSei||"") + (orderData.nameMei ? " " + orderData.nameMei : "")) || "";
+  const carInfo = (orderData.carModel||"") + (orderData.carNumber ? "　" + orderData.carNumber : "");
+  const today = new Date();
+  const dateStr = today.getFullYear() + "年" + (today.getMonth()+1) + "月" + today.getDate() + "日";
+
+  let rowsHtml = "";
+  rows.forEach(r=>{
+    rowsHtml += `<tr><td>${r.label}</td><td class="q-amount">¥${r.amount.toLocaleString("ja-JP")}</td></tr>`;
+  });
+
+  const quoteHtml = `
+    <div class="q-header">
+      <div class="q-title">御 見 積 書</div>
+      <div class="q-company">
+        株式会社サンアイク<br>
+        〒297-0008　千葉県茂原市渋谷912<br>
+        TEL：0475-36-2671
+      </div>
+    </div>
+    <div class="q-meta">
+      発行日：${dateStr}<br>
+      お客様名：${customerName ? customerName + " 様" : "　　　　　　　様"}<br>
+      車両：${carInfo || "　"}
+    </div>
+    <table>
+      <thead><tr><th>項目</th><th class="q-amount">金額（税込）</th></tr></thead>
+      <tbody>
+        ${rowsHtml}
+        <tr class="q-total-row"><td>合計金額（割引なし）</td><td class="q-amount">¥${grandTotal.toLocaleString("ja-JP")}</td></tr>
+        <tr><td>コーティング5%OFF適用後</td><td class="q-amount">¥${total5.toLocaleString("ja-JP")}</td></tr>
+        <tr><td>コーティング15%OFF適用後</td><td class="q-amount">¥${total15.toLocaleString("ja-JP")}</td></tr>
+        <tr><td>コーティング20%OFF適用後</td><td class="q-amount">¥${total20.toLocaleString("ja-JP")}</td></tr>
+      </tbody>
+    </table>
+    <div class="q-note">
+      ※本見積書は上記時点での概算です。実際の金額は車両の状態確認後に変動する場合があります。<br>
+      ※割引はコーティング料金のみに適用され、アラカルト項目は定価のまま合計されます。
+    </div>
+  `;
+
+  document.getElementById("quotePrintArea").innerHTML = quoteHtml;
+  window.print();
+});
+
+function addCustomSingleRow(label, amount){
+  const list = document.getElementById("customSingleList");
+  const row = document.createElement("div");
+  row.className = "custom-single-item";
+  row.innerHTML = `
+    <input type="text" class="custom-single-label" placeholder="作業内容を入力">
+    <div class="price-input-wrap"><span>¥</span><input type="number" class="custom-single-amount" placeholder="要見積り" inputmode="numeric"></div>
+    <button type="button" class="custom-single-remove">×</button>
+  `;
+  row.querySelector(".custom-single-label").value = label || "";
+  row.querySelector(".custom-single-amount").value = (amount !== undefined && amount !== null) ? amount : "";
+  row.querySelector(".custom-single-amount").addEventListener("input", updatePrice);
+  row.querySelector(".custom-single-remove").addEventListener("click", ()=>{
+    row.remove();
+    updatePrice();
+  });
+  list.appendChild(row);
+}
+
+function collectCustomSingleItems(){
+  return Array.from(document.querySelectorAll("#customSingleList .custom-single-item")).map(row=>({
+    label: row.querySelector(".custom-single-label").value,
+    amount: row.querySelector(".custom-single-amount").value
+  })).filter(item=>item.label || item.amount);
+}
+
+document.getElementById("maintCountMinus").addEventListener("click", ()=>{
+  const input = document.getElementById("maintCount");
+  const val = parseInt(input.value, 10) || 1;
+  input.value = Math.max(1, val - 1);
+});
+document.getElementById("maintCountPlus").addEventListener("click", ()=>{
+  const input = document.getElementById("maintCount");
+  const val = parseInt(input.value, 10) || 0;
+  input.value = val + 1;
+});
+
+document.getElementById("addCustomSingleBtn").addEventListener("click", ()=>{
+  addCustomSingleRow("", "");
+});
+
+(function initCarMakerSelect(){
+  const makerSelect = document.getElementById("carMaker");
+  const modelSelect = document.getElementById("carModelSelect");
+  const carModelInput = document.getElementById("carModel");
+
+  Object.keys(CAR_DATA).forEach(maker=>{
+    const opt = document.createElement("option");
+    opt.value = maker;
+    opt.textContent = maker;
+    makerSelect.appendChild(opt);
+  });
+
+  makerSelect.addEventListener("change", ()=>{
+    const models = CAR_DATA[makerSelect.value] || [];
+    modelSelect.innerHTML = '<option value="">車種選択</option>';
+    models.forEach(m=>{
+      const opt = document.createElement("option");
+      opt.value = m;
+      opt.textContent = m;
+      modelSelect.appendChild(opt);
+    });
+    const otherOpt = document.createElement("option");
+    otherOpt.value = "__other__";
+    otherOpt.textContent = "その他（手入力）";
+    modelSelect.appendChild(otherOpt);
+  });
+
+  modelSelect.addEventListener("change", ()=>{
+    if(modelSelect.value === "__other__"){
+      carModelInput.value = "";
+      carModelInput.focus();
+      return;
+    }
+    if(!modelSelect.value) return;
+    const makerName = makerSelect.value === "その他" ? "" : makerSelect.value;
+    carModelInput.value = (makerName ? makerName + " " : "") + modelSelect.value;
+
+    const suggestedSize = CAR_SIZE_MAP[modelSelect.value];
+    if(suggestedSize){
+      const targetPill = Array.from(document.querySelectorAll('.pill[data-group="size"]'))
+        .find(p=>p.textContent.trim() === suggestedSize);
+      if(targetPill){
+        document.querySelectorAll('.pill[data-group="size"]').forEach(p=>p.classList.remove("on"));
+        targetPill.classList.add("on");
+        updatePrice();
+        showToast("サイズを" + suggestedSize + "に自動選択しました（参考値・要確認）");
+      }
+    }
+  });
+})();
+
+(function initTelAutoFocus(){
+  const tel1 = document.getElementById("tel1");
+  const tel2 = document.getElementById("tel2");
+  const tel3 = document.getElementById("tel3");
+  tel1.addEventListener("input", ()=>{
+    if(tel1.value.length >= 3) tel2.focus();
+  });
+  tel2.addEventListener("input", ()=>{
+    if(tel2.value.length >= 4) tel3.focus();
+  });
+})();
+
+(function initZipLookup(){
+  const zipInput = document.getElementById("zip");
+  const addressInput = document.getElementById("address");
+  const addressDetailInput = document.getElementById("addressDetail");
+  const statusEl = document.getElementById("zipStatus");
+  let lookupTimer = null;
+
+  zipInput.addEventListener("input", ()=>{
+    clearTimeout(lookupTimer);
+    const digits = zipInput.value.replace(/[^0-9]/g, "");
+    if(digits.length !== 7){
+      statusEl.textContent = "";
+      return;
+    }
+    statusEl.textContent = "住所を検索中...";
+    lookupTimer = setTimeout(()=> lookupZip(digits), 300);
+  });
+
+  async function lookupZip(digits){
+    try{
+      const res = await fetch("https://zipcloud.ibsnet.co.jp/api/search?zipcode=" + digits);
+      const data = await res.json();
+      if(data.status === 200 && data.results && data.results.length > 0){
+        const r = data.results[0];
+        const full = (r.address1 || "") + (r.address2 || "") + (r.address3 || "");
+        addressInput.value = full;
+        statusEl.textContent = "住所を自動入力しました。続けて番地を入力してください。";
+        addressDetailInput.focus();
+      } else {
+        statusEl.textContent = "該当する住所が見つかりませんでした。手入力してください。";
+      }
+    }catch(e){
+      console.error(e);
+      statusEl.textContent = "住所検索に失敗しました。手入力してください。";
+    }
+  }
+})();
+
+
+</script>
+
+</body>
+</html>
