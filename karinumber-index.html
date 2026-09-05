@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>仮ナンバー使用簿</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<style>
+  :root{
+    --ink:#1C2B39;
+    --paper:#FFFFFF;
+    --bg:#EFF2F5;
+    --line:#4C6B8A;
+    --plate-red:#C81E3A;
+    --muted:#7C8794;
+    --ok:#1F7A4D;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:96px;
+  }
+  header{
+    background:var(--ink);
+    color:#fff;
+    padding:18px 20px 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    right:-30px;
+    top:-30px;
+    width:140px;
+    height:140px;
+    background:var(--plate-red);
+    transform:rotate(-20deg);
+    opacity:.9;
+  }
+  header h1{
+    margin:0;
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:.02em;
+    position:relative;
+    z-index:1;
+  }
+  header p{
+    margin:4px 0 0;
+    font-size:12.5px;
+    color:#C9D3DC;
+    position:relative;
+    z-index:1;
+  }
+  .tabs{
+    display:flex;
+    margin:16px;
+    background:var(--paper);
+    border-radius:10px;
+    padding:4px;
+    box-shadow:0 1px 2px rgba(0,0,0,.08);
+  }
+  .tabs button{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:11px 0;
+    font-size:15px;
+    font-weight:700;
+    color:var(--muted);
+    border-radius:8px;
+  }
+  .tabs button.active{
+    background:var(--ink);
+    color:#fff;
+  }
+  main{
+    margin:0 16px;
+  }
+  .card{
+    background:var(--paper);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:0 1px 2px rgba(0,0,0,.06);
+  }
+  .card h2{
+    font-size:13px;
+    margin:0 0 10px;
+    color:var(--line);
+    font-weight:700;
+  }
+  .qr-box{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .qr-box .status{
+    flex:1;
+    font-size:14px;
+  }
+  .qr-box .status strong{
+    display:block;
+    font-size:18px;
+    color:var(--ink);
+  }
+  .qr-box .status span{
+    color:var(--muted);
+    font-size:12.5px;
+  }
+  .capture-btn{
+    border:1.5px solid var(--line);
+    background:#fff;
+    color:var(--line);
+    border-radius:8px;
+    padding:10px 14px;
+    font-size:13.5px;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .capture-btn.done{
+    border-color:var(--ok);
+    color:var(--ok);
+  }
+  input[type=file]{ display:none; }
+  label.field{
+    display:block;
+    margin-bottom:12px;
+  }
+  label.field:last-child{ margin-bottom:0; }
+  label.field span{
+    display:block;
+    font-size:12.5px;
+    color:var(--muted);
+    margin-bottom:4px;
+  }
+  input[type=text], select, textarea{
+    width:100%;
+    padding:10px 11px;
+    border:1px solid #D7DCE1;
+    border-radius:8px;
+    font-size:15px;
+    color:var(--ink);
+    background:#fff;
+    font-family:inherit;
+  }
+  textarea{ resize:vertical; min-height:56px; }
+  .thumb{
+    margin-top:8px;
+    max-width:100%;
+    border-radius:8px;
+    display:none;
+  }
+  .submit-bar{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--bg) 60%, transparent);
+  }
+  .submit-bar button{
+    width:100%;
+    padding:15px 0;
+    background:var(--plate-red);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:.02em;
+  }
+  .submit-bar button:disabled{
+    background:#B8BFC6;
+  }
+  .msg{
+    margin:0 16px 12px;
+    padding:11px 13px;
+    border-radius:8px;
+    font-size:13.5px;
+    display:none;
+  }
+  .msg.ok{ background:#E4F3EA; color:var(--ok); display:block; }
+  .msg.err{ background:#FBE7E9; color:var(--plate-red); display:block; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>仮ナンバー使用簿</h1>
+  <p>QRコードと車台番号の写真で貸与・返納を記録します</p>
+</header>
+
+<div class="tabs">
+  <button id="tabCheckout" class="active">貸与(持ち出し)</button>
+  <button id="tabReturn">返納</button>
+</div>
+
+<div id="msg" class="msg"></div>
+
+<main>
+  <div class="card">
+    <h2>1. 仮ナンバーのQRコード</h2>
+    <div class="qr-box">
+      <div class="status">
+        <strong id="plateIdText">未読み取り</strong>
+        <span>バッグの持ち手のQRタグを撮影してください</span>
+      </div>
+      <button type="button" class="capture-btn" id="qrBtn">QRを撮影</button>
+      <input type="file" id="qrInput" accept="image/*" capture="environment">
+    </div>
+  </div>
+
+  <div class="card" id="checkoutFields">
+    <h2>2. 貸与情報</h2>
+    <label class="field"><span>車名</span>
+      <input type="text" id="co_carName" placeholder="例: プリウス">
+    </label>
+    <label class="field"><span>車台番号の写真(証拠として保存)</span>
+      <button type="button" class="capture-btn" id="chassisBtn">車台番号を撮影</button>
+      <input type="file" id="chassisInput" accept="image/*" capture="environment">
+      <img id="chassisThumb" class="thumb">
+    </label>
+    <label class="field"><span>車台番号(手入力)</span>
+      <input type="text" id="co_chassisNo" placeholder="写真だけで良ければ空欄でも可">
+    </label>
+    <label class="field"><span>回送目的</span>
+      <select id="co_purpose">
+        <option value="販売">販売</option>
+        <option value="検査">検査</option>
+        <option value="登録">登録</option>
+        <option value="車検">車検</option>
+      </select>
+    </label>
+    <label class="field"><span>発地</span>
+      <select id="co_departure">
+        <option value="本社(茂原店)">本社(茂原店)</option>
+        <option value="旧本社">旧本社</option>
+        <option value="キーパー">キーパー</option>
+        <option value="ガリバー">ガリバー</option>
+        <option value="イエス">イエス</option>
+        <option value="__other__">その他(手入力)</option>
+      </select>
+      <input type="text" id="co_departure_other" placeholder="発地を入力" style="display:none; margin-top:6px;">
+    </label>
+    <label class="field"><span>着地</span>
+      <select id="co_arrival">
+        <option value="本社(茂原店)">本社(茂原店)</option>
+        <option value="旧本社">旧本社</option>
+        <option value="キーパー">キーパー</option>
+        <option value="ガリバー">ガリバー</option>
+        <option value="イエス">イエス</option>
+        <option value="__other__">その他(手入力)</option>
+      </select>
+      <input type="text" id="co_arrival_other" placeholder="着地を入力" style="display:none; margin-top:6px;">
+    </label>
+    <label class="field"><span>使用者</span>
+      <input type="text" id="co_user" placeholder="例: 山田">
+    </label>
+  </div>
+
+  <div class="card" id="returnFields" style="display:none;">
+    <h2>2. 返納情報</h2>
+    <label class="field"><span>確認者</span>
+      <input type="text" id="rt_confirmedBy" placeholder="例: 山田">
+    </label>
+    <label class="field"><span>管理者</span>
+      <input type="text" id="rt_managerName" placeholder="例: 鈴木">
+    </label>
+    <label class="field"><span>備考</span>
+      <textarea id="rt_remarks" placeholder="任意"></textarea>
+    </label>
+  </div>
+</main>
+
+<div class="submit-bar">
+  <button type="button" id="submitBtn" disabled>QRを読み取ってください</button>
+</div>
+
+<canvas id="workCanvas" style="display:none;"></canvas>
+
+<script>
+// ==== ここをGASデプロイ後のウェブアプリURLに書き換える ====
+const GAS_URL = 'https://script.google.com/macros/s/【デプロイ後のIDに置き換え】/exec';
+
+let mode = 'checkout';
+let plateId = null;
+let chassisPhotoBase64 = null;
+
+const tabCheckout = document.getElementById('tabCheckout');
+const tabReturn = document.getElementById('tabReturn');
+const checkoutFields = document.getElementById('checkoutFields');
+const returnFields = document.getElementById('returnFields');
+const submitBtn = document.getElementById('submitBtn');
+const msgBox = document.getElementById('msg');
+
+tabCheckout.onclick = () => setMode('checkout');
+tabReturn.onclick = () => setMode('return');
+
+function setMode(m){
+  mode = m;
+  tabCheckout.classList.toggle('active', m==='checkout');
+  tabReturn.classList.toggle('active', m==='return');
+  checkoutFields.style.display = m==='checkout' ? 'block' : 'none';
+  returnFields.style.display = m==='return' ? 'block' : 'none';
+  updateSubmitState();
+}
+
+function showMsg(text, ok){
+  msgBox.textContent = text;
+  msgBox.className = 'msg ' + (ok ? 'ok' : 'err');
+}
+
+// --- QR読み取り(撮影した写真からjsQRでデコード) ---
+document.getElementById('qrBtn').onclick = () => document.getElementById('qrInput').click();
+document.getElementById('qrInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.getElementById('workCanvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if(code && code.data){
+      plateId = code.data.trim();
+      document.getElementById('plateIdText').textContent = plateId;
+      showMsg('QRを読み取りました: ' + plateId, true);
+    } else {
+      showMsg('QRコードを読み取れませんでした。明るい場所でもう一度撮影してください。', false);
+    }
+    updateSubmitState();
+  };
+  img.src = URL.createObjectURL(file);
+};
+
+// --- 発地・着地の「その他」切り替え ---
+function wireOtherToggle(selectId, otherId){
+  const sel = document.getElementById(selectId);
+  const other = document.getElementById(otherId);
+  sel.onchange = () => {
+    other.style.display = sel.value === '__other__' ? 'block' : 'none';
+  };
+}
+wireOtherToggle('co_departure', 'co_departure_other');
+wireOtherToggle('co_arrival', 'co_arrival_other');
+
+function getDeparture(){
+  const sel = document.getElementById('co_departure');
+  return sel.value === '__other__' ? document.getElementById('co_departure_other').value : sel.value;
+}
+function getArrival(){
+  const sel = document.getElementById('co_arrival');
+  return sel.value === '__other__' ? document.getElementById('co_arrival_other').value : sel.value;
+}
+
+// --- 車台番号の写真 ---
+document.getElementById('chassisBtn').onclick = () => document.getElementById('chassisInput').click();
+document.getElementById('chassisInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    chassisPhotoBase64 = reader.result;
+    const thumb = document.getElementById('chassisThumb');
+    thumb.src = chassisPhotoBase64;
+    thumb.style.display = 'block';
+    document.getElementById('chassisBtn').textContent = '撮影済み(撮り直す)';
+    document.getElementById('chassisBtn').classList.add('done');
+  };
+  reader.readAsDataURL(file);
+};
+
+function updateSubmitState(){
+  if(!plateId){
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'QRを読み取ってください';
+    return;
+  }
+  submitBtn.disabled = false;
+  submitBtn.textContent = mode === 'checkout' ? '貸与を記録する' : '返納を記録する';
+}
+
+submitBtn.onclick = async () => {
+  submitBtn.disabled = true;
+  submitBtn.textContent = '送信中...';
+  msgBox.style.display = 'none';
+
+  let payload;
+  if(mode === 'checkout'){
+    payload = {
+      type: 'checkout',
+      plateId,
+      carName: document.getElementById('co_carName').value,
+      chassisNo: document.getElementById('co_chassisNo').value,
+      purpose: document.getElementById('co_purpose').value,
+      route: getDeparture() + ' 〜 ' + getArrival(),
+      user: document.getElementById('co_user').value,
+      chassisPhotoBase64
+    };
+  } else {
+    payload = {
+      type: 'return',
+      plateId,
+      confirmedBy: document.getElementById('rt_confirmedBy').value,
+      managerName: document.getElementById('rt_managerName').value,
+      remarks: document.getElementById('rt_remarks').value
+    };
+  }
+
+  try{
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(data.ok){
+      showMsg((mode==='checkout' ? '貸与' : '返納') + 'を記録しました。台帳PDFを更新しました。', true);
+      resetForm();
+    } else {
+      showMsg('エラー: ' + data.error, false);
+    }
+  } catch(err){
+    showMsg('通信に失敗しました。電波の良い場所で再度お試しください。', false);
+  }
+  updateSubmitState();
+};
+
+function resetForm(){
+  plateId = null;
+  chassisPhotoBase64 = null;
+  document.getElementById('plateIdText').textContent = '未読み取り';
+  document.getElementById('chassisThumb').style.display = 'none';
+  document.getElementById('chassisBtn').textContent = '車台番号を撮影';
+  document.getElementById('chassisBtn').classList.remove('done');
+  document.getElementById('co_departure').value = '本社(茂原店)';
+  document.getElementById('co_arrival').value = '本社(茂原店)';
+  document.getElementById('co_departure_other').style.display = 'none';
+  document.getElementById('co_arrival_other').style.display = 'none';
+  ['co_carName','co_chassisNo','co_user','co_departure_other','co_arrival_other','rt_confirmedBy','rt_managerName','rt_remarks']
+    .forEach(id => document.getElementById(id).value = '');
+}
+
+setMode('checkout');
+</script>
+</body>
+</html>
